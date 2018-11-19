@@ -14,11 +14,11 @@ Execute the following command:
 
 ### Other interesting commands:
 
+commit  ```git commit -a -m "first commit"```
+
 push  ```git push```
 
 pull    ```git pull```
-
-commit ```git commit ```
 
 
 
