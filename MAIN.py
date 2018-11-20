@@ -7,10 +7,17 @@ from math import *
 #Importing other file
 import data_importer as DI
 
-simulation_cases = DI.simulation_cases
-a2c = DI.a2c
-bay_distances = DI.bay_distances
+simulation_cases     = DI.simulation_cases
+aircraft2capacity    = DI.aircraft2capacity
+bay_distances        = DI.bay_distances
+aircraft2group       = DI.aircraft2group
+group2bay_compliance = DI.group2bay_compliance
 
+simulation_case = simulation_cases['01']
+
+for i in range(len(simulation_case)):
+    for j in range(len(bay_distances)):
+        pass
 
 
 

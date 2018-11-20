@@ -23,7 +23,6 @@ for file in files:
     #Importing Data
     imported_data = pd.read_csv(open(base_directory+'/'+file), sep=',')
     simulation_cases.update({file[-6:-4]:imported_data})
-    print('  '+file+': DONE')
 
     
     #Showing Aircraft Ground Time
@@ -48,8 +47,12 @@ for file in files:
         plt.show()
 
 
-a2c = pd.read_csv(open(base_directory+'/Aircraft_type2capacity.csv'), sep=',')
-bay_distances = pd.read_csv(open(base_directory+'/Bay Distances.csv'), sep=',') 
+group2bay_compliance = pd.read_csv(open(base_directory+'/Bay Compliance.csv'        ), sep=',')
+aircraft2capacity    = pd.read_csv(open(base_directory+'/Aircraft_type2capacity.csv'), sep=',')
+aircraft2group       = pd.read_csv(open(base_directory+'/Aircraft_type2Group.csv'   ), sep=',')
+bay_distances        = pd.read_csv(open(base_directory+'/Bay Distances.csv'         ), sep=',')
+
+
 
 
 '''
