@@ -20,6 +20,8 @@ push  ```git push```
 
 pull    ```git pull```
 
+get status  ```git status```
+
 
 
 switch between branches  ```git checkout <branch_name>```
