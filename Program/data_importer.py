@@ -47,11 +47,13 @@ for file in files:
         plt.show()
 
 
-group2bay_compliance = pd.read_csv(open(base_directory+'/Bay Compliance.csv'        ), sep=',')
-aircraft2capacity    = pd.read_csv(open(base_directory+'/Aircraft_type2capacity.csv'), sep=',')
-aircraft2group       = pd.read_csv(open(base_directory+'/Aircraft_type2Group.csv'   ), sep=',')
-bay_distances        = pd.read_csv(open(base_directory+'/Bay Distances.csv'         ), sep=',')
+flight_no2aircraft_type = pd.read_csv(open(base_directory+'/flight_no2aircraft_type.csv' ), sep=',')
+group2bay_compliance    = pd.read_csv(open(base_directory+'/Bay Compliance.csv'          ), sep=',')
+aircraft2capacity       = pd.read_csv(open(base_directory+'/Aircraft_type2capacity.csv'  ), sep=',')
+aircraft2group          = pd.read_csv(open(base_directory+'/Aircraft_type2Group.csv'     ), sep=',')
+bay_distances           = pd.read_csv(open(base_directory+'/Bay Distances.csv'           ), sep=',')
 
+results1 = pd.read_csv(open(base_directory+'/Bay Assignments Results 02-06-2015.csv'), sep=',')
 
 
 
@@ -60,8 +62,14 @@ result_files = ['Bay Assignments Results 02-06-2015.csv',
                 'Bay Assignments Results 05-07-2015.csv']
 
 results = []
+test = []
 for result_file in result_files:
-    results.append(pd.read_csv(open(base_directory+'/'+result_file), sep=','))
+    local_result = pd.read_csv(open(base_directory+'/'+result_file), sep=',')
+    results.append(local_result)
+    flight_no2ac_type = local_result[['Fl No.', 'AC Type']]
+    test_value = flight_no2ac_type[flight_no2ac_type['Fl No.'].notnull()]
+    test_value.to_csv(base_directory+'/conv_'+result_file,sep=',')
+    test.append(test_value)
 '''
 
 print ('Importing info: DONE')
