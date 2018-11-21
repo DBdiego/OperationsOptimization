@@ -1,28 +1,31 @@
+import matplotlib.dates  as mdates
 import matplotlib.pyplot as plt
-import matplotlib.dates as mdates
-import numpy as np
-from math import *
-import os
-import csv
 import pandas as pd
-import matplotlib.dates as mdates
+import numpy as np
+import csv
+import os
+
 from datetime import datetime
+from math import *
 
-base_directory = './csv_data_appendices'
-
-files = [x for x in os.listdir(base_directory) if 'Simulation Case ' in x]
+import Converters as CONV
 
 
-files.sort()
+#Directory definitions
+base_directory = '../csv_data_appendices'
+simulation_files = [x for x in os.listdir(base_directory) if 'Simulation Case ' in x]
 
-simulation_cases = {}
+simulation_files.sort()
+
 
 print ('Importing info: ...')
-for file in files:
 
-    #Importing Data
-    imported_data = pd.read_csv(open(base_directory+'/'+file), sep=',')
-    simulation_cases.update({file[-6:-4]:imported_data})
+simulation_cases = {}
+for simulation_file in simulation_files:
+
+    #Importing Simulation Data
+    imported_data = pd.read_csv(open(base_directory+'/'+simulation_file), sep=',')
+    simulation_cases.update({simulation_file[-6:-4]:imported_data})
 
     
     #Showing Aircraft Ground Time
@@ -30,7 +33,10 @@ for file in files:
     if plot_requirements:
     
         arrival_departure = imported_data[['ATA', 'ATD']]
+
+        #Plot Characteristics
         fig, ax = plt.subplots()
+        myFmt = mdates.DateFormatter('%H:%M')
         
         for i in range(len(arrival_departure['ATA'])):
             
@@ -40,20 +46,36 @@ for file in files:
             ax.plot([ata, atd],[i+1, i+1], c='k')
             
         ax.set_title(file)
-        myFmt = mdates.DateFormatter('%H:%M')
+        
         ax.xaxis.set_major_formatter(myFmt)
         ax.set_xlim([datetime.now().replace(hour=0 , minute=0 , second=0 , microsecond=0),
                      datetime.now().replace(hour=23, minute=59, second=59, microsecond=0)])
         plt.show()
 
 
-flight_no2aircraft_type = pd.read_csv(open(base_directory+'/flight_no2aircraft_type.csv' ), sep=',')
-group2bay_compliance    = pd.read_csv(open(base_directory+'/Bay Compliance.csv'          ), sep=',')
-aircraft2capacity       = pd.read_csv(open(base_directory+'/Aircraft_type2capacity.csv'  ), sep=',')
-aircraft2group          = pd.read_csv(open(base_directory+'/Aircraft_type2Group.csv'     ), sep=',')
-bay_distances           = pd.read_csv(open(base_directory+'/Bay Distances.csv'           ), sep=',')
+#Importing Remaining Information
+#-- pandas
+group2bay_compliance = pd.read_csv(open(base_directory+'/Bay Compliance.csv'), sep=',')
+bay_distances        = pd.read_csv(open(base_directory+'/Bay Distances.csv' ), sep=',')
 
-results1 = pd.read_csv(open(base_directory+'/Bay Assignments Results 02-06-2015.csv'), sep=',')
+#-- csv to dictionary
+flight_no2aircraft_type = CONV.csv2dict(base_directory+'/flight_no2aircraft_type.csv', sep=',')
+aircraft_type2capacity  = CONV.csv2dict(base_directory+'/Aircraft_type2capacity.csv' , sep=',', main_cat='AC Type')
+aircraft_type2group     = CONV.csv2dict(base_directory+'/Aircraft_type2Group.csv'    , sep=',')
+
+
+
+print ('Importing info: DONE')
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -72,6 +94,6 @@ for result_file in result_files:
     test.append(test_value)
 '''
 
-print ('Importing info: DONE')
+
     
 

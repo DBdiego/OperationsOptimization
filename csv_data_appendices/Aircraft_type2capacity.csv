@@ -1,4 +1,4 @@
-AC Type,Real Name,Capacity
+AC Type,Name,Capacity
 772,Boeing 777-200,309
 773,Boeing 777-300,468
 738,Boeing 737-800,174
@@ -9,7 +9,8 @@ B73,,1
 787,Boeing 787-700,242
 E90,Embraer 190,80
 AT7,ATR 72,72
-73J,Boeigin 737-900,189
+73J,Boeing 737-900,189
 330,Airbus A330,259
 332,Airbus A330-200,247
 CRJ,CRJ-200,50
+788,Boeing 787-800,335

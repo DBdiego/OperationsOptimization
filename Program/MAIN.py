@@ -9,12 +9,13 @@ import data_importer as DI
 
 #Importing data
 simulation_cases  = DI.simulation_cases
-aircraft2capacity = DI.aircraft2capacity
 bay_distances     = DI.bay_distances
-aircraft2group    = DI.aircraft2group
 
 flight_no2aircraft_type = DI.flight_no2aircraft_type
+aircraft_type2capacity  = DI.aircraft_type2capacity
 group2bay_compliance    = DI.group2bay_compliance
+aircraft_type2group     = DI.aircraft_type2group
+
 
 
 
@@ -24,11 +25,21 @@ simulation_case = simulation_cases['01']
 for i in range(len(simulation_case)):
     flight_number = simulation_case['Fl No.'][i]
     
-    aircraft_type = flight_no2aircraft_type.loc[flight_no2aircraft_type['Fl No.'].isin([flight_number])]
-    #print ('Fl No.')
-    print (flight_number, aircraft_type)
-    for j in range(len(bay_distances)):
-        pass
+    if flight_number in flight_no2aircraft_type:
+
+        #Find number of passengers in an aircraft
+        aircraft_type     = flight_no2aircraft_type[flight_number]
+        aircraft_capacity = aircraft_type2capacity[aircraft_type]['Capacity']
+        aircraft_group    = aircraft_type2group[aircraft_type]
+        bay_compliance    = group2bay_compliance[['Bay', aircraft_group]] 
+        print (flight_number, aircraft_type, aircraft_group, aircraft_capacity)
+        
+        for j in range(len(bay_distances)):
+            
+            
+            
+            
+            pass
 
 
 
