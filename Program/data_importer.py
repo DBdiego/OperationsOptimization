@@ -6,6 +6,7 @@ import csv
 import os
 
 from datetime import datetime
+import datetime
 from math import *
 
 import Converters as CONV
@@ -29,27 +30,53 @@ for simulation_file in simulation_files:
 
     
     #Showing Aircraft Ground Time
-    plot_requirements = 0
+    plot_requirements = 1
     if plot_requirements:
+        unique_flight_numbers = list(imported_data['Fl No. Arrival'].unique())
     
         arrival_departure = imported_data[['ATA', 'ATD']]
 
         #Plot Characteristics
         fig, ax = plt.subplots()
         myFmt = mdates.DateFormatter('%H:%M')
+
+        atas = []
+        atds = []
         
-        for i in range(len(arrival_departure['ATA'])):
-            
-            ata = pd.to_datetime(arrival_departure['ATA'][i])
-            atd = pd.to_datetime(arrival_departure['ATD'][i])
-            
-            ax.plot([ata, atd],[i+1, i+1], c='k')
-            
+        for i, flight_number in enumerate(unique_flight_numbers):
+            flight_number_index = list(imported_data['Fl No. Arrival']).index(flight_number)
+
+            #Color and times of arrival & departure
+            flight_type = imported_data['Flight Type'].iloc[flight_number_index]
+            if flight_type.lower() == 'full':
+                color = 'blue'
+                
+                ata = pd.to_datetime(imported_data['ATA'].iloc[flight_number_index])
+                atd = pd.to_datetime(imported_data['ATD'].iloc[flight_number_index])
+            else:
+                color = 'red'
+
+                ata = pd.to_datetime(imported_data['ATA'].iloc[flight_number_index])
+                atd = pd.to_datetime(imported_data['ATD'].iloc[flight_number_index+2])
+
+            #Date correction if needed
+            if atd < ata:
+                atd = atd + datetime.timedelta(days=1)
+
+            atas.append(ata)
+            atds.append(atd)
+
+            #Ploting the data
+            ax.plot([ata, atd],[i+1, i+1], c=color)
+
+        #Other plot characteristics          
         ax.set_title(simulation_file)
         
         ax.xaxis.set_major_formatter(myFmt)
-        ax.set_xlim([datetime.now().replace(hour=0 , minute=0 , second=0 , microsecond=0),
-                     datetime.now().replace(hour=23, minute=59, second=59, microsecond=0)])
+        ax.set_xlim([min(atas)-datetime.timedelta(hours=1),
+                     max(atds)+datetime.timedelta(hours=1)])
+        
+        ax.set_ylabel('flight number')
         plt.show()
 
 
