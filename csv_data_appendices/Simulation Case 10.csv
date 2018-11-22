@@ -1,4 +1,4 @@
-Flight Type,Fl No.,Origin,ETA,ATA,Fl No.,Dest,ETD,ATD
+Flight Type,Fl No. Arrival,Origin,ETA,ATA,Fl No. Departures,Dest,ETD,ATD
 Full,BA065,LHR,20:30,20:45,BA064,LHR,23:15,23:25
 Full,EK719,DXB,14:30,14:40,EK720,DUB,16:40,17:04
 Full,ET302,ADD,10:20,10:30,ET303,ADD,11:35,11:55

@@ -45,7 +45,7 @@ for simulation_file in simulation_files:
             
             ax.plot([ata, atd],[i+1, i+1], c='k')
             
-        ax.set_title(file)
+        ax.set_title(simulation_file)
         
         ax.xaxis.set_major_formatter(myFmt)
         ax.set_xlim([datetime.now().replace(hour=0 , minute=0 , second=0 , microsecond=0),
@@ -55,8 +55,9 @@ for simulation_file in simulation_files:
 
 #Importing Remaining Information
 #-- pandas
-group2bay_compliance = pd.read_csv(open(base_directory+'/Bay Compliance.csv'), sep=',')
-bay_distances        = pd.read_csv(open(base_directory+'/Bay Distances.csv' ), sep=',')
+group2bay_compliance = pd.read_csv(open(base_directory+'/Bay Compliance.csv'  ), sep=',')
+bay_distances        = pd.read_csv(open(base_directory+'/Bay Distances.csv'   ), sep=',')
+preferences          = pd.read_csv(open(base_directory+'/Preference Table.csv'), sep=',')
 
 #-- csv to dictionary
 flight_no2aircraft_type = CONV.csv2dict(base_directory+'/flight_no2aircraft_type.csv', sep=',')
@@ -65,7 +66,7 @@ aircraft_type2group     = CONV.csv2dict(base_directory+'/Aircraft_type2Group.csv
 
 
 
-print ('Importing info: DONE')
+print ('Importing info: DONE \n')
 
 
 
