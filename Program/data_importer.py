@@ -66,7 +66,7 @@ aircraft_type2group     = CONV.csv2dict(base_directory+'/Aircraft_type2Group.csv
 
 
 print ('Importing info: DONE')
-
+print('by Gervase')
 
 
 
