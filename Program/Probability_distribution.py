@@ -14,26 +14,6 @@ import data_importer as DI
 
 total_num_flights = len(DI.imported_data['Fl No. Arrival'].unique())
 
-'''
-A = DI.imported_data['Flight Type'].value_counts()
-B = DI.imported_data['Flight Type'].value_counts().iloc[3]
-
-
-# Split data into 'full' flights and 'split' flights
-full_flight_indices = []
-split_flight_indices = []
-
-for i in range(len(DI.imported_data)):
-    if DI.imported_data['Flight Type'].iloc[i] == 'Full':
-        full_flight_indices.append(i)
-    else:
-        split_flight_indices.append(i)
-
-
-full_flights = DI.imported_data.iloc[full_flight_indices]
-split_flights = DI.imported_data.iloc[split_flight_indices]
-'''
-
 # Aircraft type distribution
 AC_count = pd.DataFrame(DI.local_result['AC Type'].value_counts().reset_index())
 AC_count.columns = ['AC Type', 'Count']
@@ -41,7 +21,7 @@ AC_count.columns = ['AC Type', 'Count']
 AC_count['Probs'] = AC_count['Count']/sum(list(AC_count['Count']))
 AC_count = AC_count[['AC Type', 'Probs']]
 
-AC_count.to_csv('../csv_data_appendices/AC_type_distribution.csv')
+AC_count.to_csv('../csv_data_appendices/input_distributions/AC_type_distribution.csv')
 
 
 
@@ -109,6 +89,12 @@ for every_n_minutes in [10, 20, 30, 60]:
 
         ax.set_ylabel('number of flights')
         plt.show()
+
+    Arrival_count = pd.DataFrame(np.column_stack((times, number_arrivals)))
+    Arrival_count.columns=['Time', 'Count']
+    Arrival_count['Probs'] = Arrival_count['Count']/sum(list(Arrival_count['Count']))
+    Arrival_count[['Time', 'Probs']].to_csv('../csv_data_appendices/input_distributions/arrival_sampling_'+str(every_n_minutes)+'.csv', sep=',')
+    
 
         
         
