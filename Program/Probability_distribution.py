@@ -7,6 +7,7 @@ import os
 
 import datetime
 from math import *
+from scipy.stats import norm
 
 # Imported data from data_importer script
 import data_importer as DI
@@ -38,6 +39,10 @@ def create_time_array(every_n_minutes):
 
     return np.array(time_array)
 
+def create_stays_array(every_n_minutes, aircraft_data):
+    stay_array = np.arange(0, max(aircraft_stay)+every_n_minutes*60, every_n_minutes*60)
+    return stay_array
+        
 
 def sampler(sample_mold, to_be_sampeled):
     count = np.zeros(len(sample_mold))
@@ -48,16 +53,45 @@ def sampler(sample_mold, to_be_sampeled):
   
     return count
 
+
+
 arrival_times   = list(pd.to_datetime(DI.imported_data['ATA']))
 departure_times = list(pd.to_datetime(DI.imported_data['ATD']))
+aircraft_stay = []
+for i in range(len(arrival_times)):
+    if departure_times[i] > arrival_times[i]:
+        duration = departure_times[i] - arrival_times[i]        
+    else:
+        duration = arrival_times[i] - departure_times[i]
 
-for every_n_minutes in [10, 20, 30, 60]:
+    aircraft_stay.append(duration.total_seconds())
+
+
+
+
+
+for every_n_minutes in [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30]:
+    
     times = create_time_array(every_n_minutes)
+    stays = create_stays_array(every_n_minutes, aircraft_stay) #np.arange(0, max(aircraft_stay)+every_n_minutes*60, every_n_minutes*60)
 
     number_arrivals   = sampler(times, arrival_times)
     number_departures = sampler(times, departure_times)
+    number_duration   = sampler(stays, aircraft_stay)
+    stays   = [datetime.timedelta(seconds=x) for x in stays]
 
-    number_flights_tarmac = []
+    #Generating Arrival Time Probabilities
+    Arrival_count = pd.DataFrame(np.column_stack((times, number_arrivals)))
+    Arrival_count.columns=['Time', 'Count']
+    Arrival_count['Probs'] = Arrival_count['Count']/sum(list(Arrival_count['Count']))
+    Arrival_count[['Time', 'Probs']].to_csv('../csv_data_appendices/input_distributions/arrival_sampling_'+str(every_n_minutes)+'.csv', sep=',')
+
+    #Generating Duration on tarmac Probabilities
+    Duration = pd.DataFrame(np.column_stack((stays, number_duration)))
+    Duration.columns=['Time', 'Count']
+    Duration['Probs'] = Duration['Count']/sum(list(Duration['Count']))
+    Duration[['Time', 'Probs']].to_csv('../csv_data_appendices/input_distributions/Duration_sampling_'+str(every_n_minutes)+'.csv', sep=',')
+
 
     plots_wanted = 0
     if plots_wanted:
@@ -89,12 +123,6 @@ for every_n_minutes in [10, 20, 30, 60]:
 
         ax.set_ylabel('number of flights')
         plt.show()
-
-    Arrival_count = pd.DataFrame(np.column_stack((times, number_arrivals)))
-    Arrival_count.columns=['Time', 'Count']
-    Arrival_count['Probs'] = Arrival_count['Count']/sum(list(Arrival_count['Count']))
-    Arrival_count[['Time', 'Probs']].to_csv('../csv_data_appendices/input_distributions/arrival_sampling_'+str(every_n_minutes)+'.csv', sep=',')
-    
 
         
         
