@@ -100,7 +100,12 @@ print ('Importing info: DONE \n')
 
 
 
+result_files = ['Bay Assignments Results 02-06-2015.csv',
+                'Bay Assignments Results 05-07-2015.csv']
 
+results = []
+test = []
+local_result = pd.read_csv(open(base_directory+'/'+result_files[0]), sep=',')
 
 
 
