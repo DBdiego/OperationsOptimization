@@ -30,7 +30,7 @@ for simulation_file in simulation_files:
 
     
     #Showing Aircraft Ground Time
-    plot_requirements = 1
+    plot_requirements = 0
     if plot_requirements:
         unique_flight_numbers = list(imported_data['Fl No. Arrival'].unique())
     

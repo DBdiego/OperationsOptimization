@@ -9,7 +9,7 @@ import data_importer as DI
 import Coefficient_calculator as CC
 
 #Importing data
-simulation_cases  = DI.simulation_cases
+simulation_cases = DI.simulation_cases
 
 simulation_case = simulation_cases['01']
 
@@ -28,6 +28,6 @@ for i in range(len(c)):
     bounds_.append((0,1))
 
     
-res = linprog(c, A_ub=A, b_ub=b, bounds=bounds_, options={"disp": True})
+res = linprog(c, A_ub=A, b_ub=b, bounds=bounds_, options={"disp": False})
 print(res)
 
