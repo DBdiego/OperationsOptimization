@@ -1,28 +1,56 @@
-import matplotlib.dates  as mdates
-import matplotlib.pyplot as plt
+# Imports
+# --> Modules
 import pandas as pd
 import numpy as np
-import csv
-import os
-
 import datetime
-from math import *
+
+# --> Module classes
+import matplotlib.dates  as mdates
+import matplotlib.pyplot as plt
 from scipy.stats import norm
+from math import *
 
-# Imported data from data_importer script
-import data_importer as DI
+# --> Home made files
+import Data_importer as DI
 
+
+'''
+=============================== -- INFO -- ===============================
+The tables found in the appendices approximated in this code are:
+    - All "Simulation Case ##.csv" files
+    - "Bay Assignments Results 02-06-2015.csv"
+    - "Bay Assignments Results 05-07-2015.csv"
+
+The Distributions are found using descrete probability theory. Mostly
+counting the number of occurences of a certain event (e.g. # of times
+the A787-800 lands) compared to the total of events (total # arriving
+aircraft).
+
+Values approximated are:
+    - Aircraft Type (model)
+    - Actual Time of Arrival (ATA)
+    - Duration of Stay at the airport
+  ! - Domestic/International Flight    *!!! NOT DONE YET !!!*
+==========================================================================
+'''
+
+
+print ('Approximating probability disitributions: ...')
 
 total_num_flights = len(DI.imported_data['Fl No. Arrival'].unique())
 
-# Aircraft type distribution
-AC_count = pd.DataFrame(DI.local_result['AC Type'].value_counts().reset_index())
+### AIRCRAFT TYPE
+AC_count = pd.DataFrame(DI.appendix_result['AC Type'].value_counts().reset_index())
 AC_count.columns = ['AC Type', 'Count']
 
 AC_count['Probs'] = AC_count['Count']/sum(list(AC_count['Count']))
 AC_count = AC_count[['AC Type', 'Probs']]
 
 AC_count.to_csv('../csv_data_appendices/input_distributions/AC_type_distribution.csv')
+
+
+
+
 
 
 
@@ -54,7 +82,6 @@ def sampler(sample_mold, to_be_sampeled):
     return count
 
 
-
 arrival_times   = list(pd.to_datetime(DI.imported_data['ATA']))
 departure_times = list(pd.to_datetime(DI.imported_data['ATD']))
 aircraft_stay = []
@@ -69,22 +96,26 @@ for i in range(len(arrival_times)):
 
 
 
-
 for every_n_minutes in [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30]:
-    
-    times = create_time_array(every_n_minutes)
-    stays = create_stays_array(every_n_minutes, aircraft_stay) #np.arange(0, max(aircraft_stay)+every_n_minutes*60, every_n_minutes*60)
 
-    number_arrivals   = sampler(times, arrival_times)
-    number_departures = sampler(times, departure_times)
-    number_duration   = sampler(stays, aircraft_stay)
-    stays   = [datetime.timedelta(seconds=x) for x in stays]
+    # Generating Sampling 'molds' (in which data is classified/sampled)
+    times = create_time_array (every_n_minutes)
+    stays = create_stays_array(every_n_minutes, aircraft_stay)
+
+    # Sampling the imported data
+    number_arrivals   = sampler(times, arrival_times   )
+    number_departures = sampler(times, departure_times )
+    number_duration   = sampler(stays, aircraft_stay   )
+
+    stays = [datetime.timedelta(seconds=x) for x in stays]
+
 
     #Generating Arrival Time Probabilities
     Arrival_count = pd.DataFrame(np.column_stack((times, number_arrivals)))
     Arrival_count.columns=['Time', 'Count']
     Arrival_count['Probs'] = Arrival_count['Count']/sum(list(Arrival_count['Count']))
-    Arrival_count[['Time', 'Probs']].to_csv('../csv_data_appendices/input_distributions/arrival_sampling_'+str(every_n_minutes)+'.csv', sep=',')
+    Arrival_count['Time'] = Arrival_count['Time'] - pd.to_datetime('today')
+    Arrival_count[['Time', 'Probs']].to_csv('../csv_data_appendices/input_distributions/Arrival_sampling_'+str(every_n_minutes)+'.csv', sep=',')
 
     #Generating Duration on tarmac Probabilities
     Duration = pd.DataFrame(np.column_stack((stays, number_duration)))
@@ -125,7 +156,7 @@ for every_n_minutes in [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30]:
         plt.show()
 
         
-        
+print ('Approximating probability disitributions: DONE')       
 
 
 
@@ -133,18 +164,6 @@ for every_n_minutes in [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30]:
 
 
 
-
-
-
-
-
-
-
-
-
-'''
-np.random.choice
-'''
 
 
 

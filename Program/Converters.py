@@ -1,3 +1,4 @@
+# Imports
 import csv
 
 
@@ -5,11 +6,10 @@ import csv
 def csv2dict(directory, sep=',', main_cat=''):
     f = open(directory)
     reader = csv.reader(f, skipinitialspace=True, delimiter = sep)
-    
     categories_found = 0
     dictionary = {}
+
     for row in reader:
-        
         # In the case more than 1 characteristic is given in the csv
         if len(row) > 2:
             if not categories_found:

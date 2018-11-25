@@ -1,94 +1,97 @@
-from scipy.optimize import linprog
-from datetime import datetime
+# Imports
+# --> Modules
 import pandas as pd
 import numpy as np
-from math import *
+import time
 
-#Importing other file
-import data_importer as DI
+# --> Home made files
+import Data_importer as DI
 
-#Importing data
-simulation_cases  = DI.simulation_cases
-bay_distances     = DI.bay_distances
 
+# Importing data
+aircraft_type2characteristics = DI.aircraft_type2characteristics
 flight_no2aircraft_type = DI.flight_no2aircraft_type
-aircraft_type2capacity  = DI.aircraft_type2capacity
 group2bay_compliance    = DI.group2bay_compliance
-aircraft_type2group     = DI.aircraft_type2group
+bay_distances           = DI.bay_distances
 preferences             = DI.preferences
 
 
-#simulation_case = simulation_cases['01']
+def coefficient_calculator(input_data, terminal, alpha=1, beta=1):
 
-
-
-def coefficient_calculator(simulation_case, terminal, alpha=1, beta=1):
-
-    z1_coefficients = []
-    z2_coefficients = []
-
+    coefficients = {}
     
+    all_bays = np.array(list(group2bay_compliance['Bay']))
+    terminal_distances = bay_distances[['Bay', terminal]]
+
+    # Creating arrays for coefficients of the 2 objective functions
+    max_possibilities = len(input_data)*len(all_bays)
+    z1_coefficients = np.zeros(max_possibilities)
+    z2_coefficients = np.zeros(max_possibilities)
+
 
     print ('Generating Coefficients: ...')
+    start_time = time.time()
+    
     
     # Determining coefficients of decision variables
-    flight_numbers_arrival = simulation_case['Fl No. Arrival'].unique()
-    flight_numbers_departure = simulation_case['Fl No. Departure'].unique()
-    for i in range(len(flight_numbers_arrival)):
-        flight_number_arrival = flight_numbers_arrival[i]
+    gobal_index = 0
+    for i in range(len(input_data)):
+
+        # Defining the inbound flight data
+        flight_data = input_data[i]
+        flight_number_arrival   = flight_data['Fl No. Arrival'  ]
+        flight_number_departure = flight_data['Fl No. Departure']
         
-        if flight_number_arrival in flight_no2aircraft_type:
 
-            #Find number of passengers in an aircraft
-            aircraft_type     = flight_no2aircraft_type[flight_number_arrival]
-            aircraft_capacity = int(aircraft_type2capacity[aircraft_type]['Capacity'])
-            aircraft_group    = aircraft_type2group[aircraft_type]
-
-            #Possible bays for aircraft model
-            bay_compliance    = group2bay_compliance[['Bay', aircraft_group]] 
-            possible_bays = list(bay_compliance.loc[bay_compliance[aircraft_group].isin([1])]['Bay'].unique())
-
-            #Preference
-            preference_bay = ''
-            if flight_number_arrival in preferences['Fl No.'].unique():
-                flight_index_pref = list(preferences['Fl No.']).index(flight_number_arrival)
-                preference_bays = (preferences['Bay'].iloc[flight_index_pref]).split(',')
-                
-                #print (flight_number_arrival, aircraft_type, aircraft_group, aircraft_capacity, preference_bay)
-                
-            else:
-                #-- finding departure flight number
-                flight_index = list(simulation_case['Fl No. Arrival']).index(flight_number_arrival)
-                flight_number_departure = simulation_case['Fl No. Departure'].iloc[flight_index]
-
-                if flight_number_departure in preferences['Fl No.'].unique():
-                    flight_index_pref = list(preferences['Fl No.']).index(flight_number_departure)
-                    preference_bays = (preferences['Bay'].iloc[flight_index_pref]).split(',')
-                    
-                    #print (flight_number_arrival, aircraft_type, aircraft_group, aircraft_capacity, preference_bay)
-                    
+        # Determining Aircraft Type Information
+        aircraft_type      = flight_data['ac type'] 
+        aircraft_capacity  = int(aircraft_type2characteristics[aircraft_type]['Capacity'])
+        
+        # Preference of Flight if any
+        if flight_number_arrival in preferences['Fl No.'].unique():
+            flight_index_pref = list(preferences['Fl No.']).index(flight_number_arrival)
+            preference_bays = (preferences['Bay'].iloc[flight_index_pref]).split(',')
             
-            for j in range(len(possible_bays)):
-                bay = possible_bays[j]
-                terminal_distances = bay_distances[['Bay', terminal]]
-                distance = int(terminal_distances.loc[terminal_distances['Bay'].isin([bay])].iloc[0, 1])
-                z1_coefficients.append(aircraft_capacity * distance)
+        elif flight_number_departure in preferences['Fl No.'].unique():
+            flight_index_pref = list(preferences['Fl No.']).index(flight_number_departure)
+            preference_bays = (preferences['Bay'].iloc[flight_index_pref]).split(',')
 
-                if j in preference_bays:
-                    z2_coefficients.append(1)
-                else:
-                    z2_coefficients.append(0)
+        
+        # Loop over all possible bays
+        for j, bay in enumerate(all_bays):
+            
+            # Find terminal Distance
+            distance = int(terminal_distances.loc[terminal_distances['Bay'].isin([bay])].iloc[0, 1])
 
-    #Converting lists to arrays
-    z1_coefficients = np.array(z1_coefficients)
-    z2_coefficients = np.array(z2_coefficients)
+
+            # Compute coefficient of first objective function
+            z1_coefficients[gobal_index] = aircraft_capacity * distance
+            coefficient = (aircraft_capacity * distance)*-1*alpha
+
+
+            # Coefficient of second objective function
+            if j in preference_bays:
+                z2_coefficients[gobal_index] = 1
+                coefficient += 1 * beta
+            else:
+                z2_coefficients[gobal_index] = 0
+                coefficient += 0 * beta
+
+            # Assigning Coefficient to a decision variable name
+            coefficients.update({str(i) + '_' + bay : coefficient})
+
+            
+            gobal_index += 1
+
 
     #Combingin both objective functions
     final_coefficients = alpha * (-1* z1_coefficients) +\
                          beta  *      z2_coefficients
 
-    print ('Generating Coefficients: DONE\n')
+
+    print ('Generating Coefficients: DONE (' + str(round(time.time()-start_time, 3)) +' seconds)\n')
     
-    return final_coefficients
+    return coefficients #, final_coefficients, [z1_coefficients, z2_coefficients], coefficients
+
 
 

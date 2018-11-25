@@ -1,14 +1,17 @@
-import matplotlib.dates  as mdates
-import matplotlib.pyplot as plt
+# Imports
+# --> Modules
 import pandas as pd
 import numpy as np
+import datetime
 import csv
 import os
 
-from datetime import datetime
-import datetime
+# --> Module classes
+import matplotlib.dates  as mdates
+import matplotlib.pyplot as plt
 from math import *
 
+# --> Home made files
 import Converters as CONV
 
 
@@ -77,6 +80,7 @@ for simulation_file in simulation_files:
                      max(atds)+datetime.timedelta(hours=1)])
         
         ax.set_ylabel('flight number')
+        plt.savefig('./plots/Ground_time_SC'+ simulation_file[-6:-4]+'.pdf')
         plt.show()
 
 
@@ -87,10 +91,9 @@ bay_distances        = pd.read_csv(open(base_directory+'/Bay Distances.csv'   ),
 preferences          = pd.read_csv(open(base_directory+'/Preference Table.csv'), sep=',')
 
 #-- csv to dictionary
-flight_no2aircraft_type = CONV.csv2dict(base_directory+'/flight_no2aircraft_type.csv', sep=',')
-aircraft_type2capacity  = CONV.csv2dict(base_directory+'/Aircraft_type2capacity.csv' , sep=',', main_cat='AC Type')
-aircraft_type2group     = CONV.csv2dict(base_directory+'/Aircraft_type2Group.csv'    , sep=',')
-
+aircraft_type2characteristics = CONV.csv2dict(base_directory+'/Aircraft_type2characteristics.csv' , sep=',', main_cat='AC Type')
+flight_no2aircraft_type       = CONV.csv2dict(base_directory+'/flight_no2aircraft_type.csv'       , sep=',')
+#aircraft_type2group           = CONV.csv2dict(base_directory+'/Aircraft_type2Group.csv'           , sep=',')
 
 
 print ('Importing info: DONE \n')
@@ -103,9 +106,7 @@ print ('Importing info: DONE \n')
 result_files = ['Bay Assignments Results 02-06-2015.csv',
                 'Bay Assignments Results 05-07-2015.csv']
 
-results = []
-test = []
-local_result = pd.read_csv(open(base_directory+'/'+result_files[0]), sep=',')
+appendix_result = pd.read_csv(open(base_directory+'/'+result_files[0]), sep=',')
 
 
 
