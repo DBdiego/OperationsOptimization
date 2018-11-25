@@ -23,7 +23,7 @@ commit  ```git commit -a -m "commit message"```
 push  ```git push```
 
 ### IMPORTANT
-the code is written in ``python 3```
+the code is written in ```python 3```
 required modules/dependencies:
 - pulp
 - pandas
@@ -33,8 +33,10 @@ required modules/dependencies:
 - scipy
 
 in case you do not have these, install them with the following command
+
 Windows:
 ``` pip3 install ##module_name## ```
+
 Mac OSX:
 ``` sudo pip3 install ##module_name##```
 
