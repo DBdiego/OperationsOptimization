@@ -2,12 +2,12 @@
 # --> Modules
 import pandas as pd
 import numpy as np
+import datetime
 import pulp
 import time
 
 # --> Module classes
 from scipy.optimize import linprog
-from datetime import datetime
 from math import *
 
 # --> Home made files
@@ -19,7 +19,7 @@ import Data_importer as DI
 
 
 # [0] Generate Input Data
-input_data = IG.generate_aircraft(sample_size=102, show_result=1)
+input_data = IG.generate_aircraft(sample_size=30, show_result=0)
 
 
 # [1] Objective function coefficients

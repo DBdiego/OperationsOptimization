@@ -123,7 +123,7 @@ for every_n_minutes in [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30]:
     Duration['Probs'] = Duration['Count']/sum(list(Duration['Count']))
     Duration[['Time', 'Probs']].to_csv('../csv_data_appendices/input_distributions/Duration_sampling_'+str(every_n_minutes)+'.csv', sep=',')
 
-
+    
     plots_wanted = 0
     if plots_wanted:
         fig, ax = plt.subplots()

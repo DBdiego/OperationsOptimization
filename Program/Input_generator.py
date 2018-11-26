@@ -52,7 +52,7 @@ def generate_aircraft(sample_size=10, every_n_minutes=20, show_result=0):
     # Time Conversions
     AC_ATA_distr ['Time'] = pd.to_timedelta(AC_ATA_distr ['Time']) + pd.to_datetime('today')
     AC_STAY_distr['Time'] = pd.to_timedelta(AC_STAY_distr['Time'])
-    
+
     # Conversion to lists 
     AC_type_distr_prob = [list(AC_type_distr['AC Type']),
                           list(AC_type_distr['Probs'  ])]
@@ -62,6 +62,28 @@ def generate_aircraft(sample_size=10, every_n_minutes=20, show_result=0):
     
     AC_STAY_distr_prob = [list(AC_STAY_distr['Time'   ]),
                           list(AC_STAY_distr['Probs'  ])]
+
+
+
+    # Night Stay exeption in probability
+    sigma      = 5400                  #[seconds] standard deviation is 1h30
+    mu         = 5400                  #[seconds] in 1h30
+    resolution = every_n_minutes * 60  #[seconds]
+    
+    number_intervals = datetime.timedelta(hours   = 6               )/  \
+                       datetime.timedelta(minutes = every_n_minutes )
+
+    time_deltas = []
+    night_probs = []
+    for k in range(int(number_intervals)):
+        time_added = k * resolution
+        night_prob = 1/( sigma * sqrt(2*pi) ) * e**( -((time_added - mu)**2)/(2*sigma**2) )
+        
+        time_deltas.append(datetime.timedelta(seconds=time_added))
+        night_probs.append(night_prob)
+        
+    night_probs = list(np.array(night_probs)/np.sum(night_probs))
+
 
     
     # Generating data
@@ -81,10 +103,20 @@ def generate_aircraft(sample_size=10, every_n_minutes=20, show_result=0):
         # If the stay is longer than 5h40 => long stay
         Long_stay = AC_STAY > datetime.timedelta(hours=5, minutes=40)
 
+
         # If the stay is longer than 5h40 => long stay
         Night_stay = AC_ATA.date() < AC_ATD.date()
-            #!!!! Need to find a way to avoid departures between 00:00 and 06:00 without fucking up the probs... !!!
 
+        # Adapting flight departure time if between midnight and 6AM
+        if Night_stay and (AC_ATD - datetime.datetime.today() < datetime.timedelta(hours=5, minutes=59)):
+            
+            #Midnight + 6h + random extra time (normal distributed)
+            AC_ATD = pd.to_datetime('today')      + \
+                     datetime.timedelta(hours=6)  + \
+                     np.random.choice(time_deltas , p = night_probs)
+
+        
+            
         # Saving generated data
         generated_input_data.append({'flight index': i          ,
                                      'ac type'     : AC_type    ,
