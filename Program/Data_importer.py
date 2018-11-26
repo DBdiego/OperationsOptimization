@@ -14,7 +14,6 @@ from math import *
 # --> Home made files
 import Converters as CONV
 
-''
 
 
 #Directory definitions
