@@ -34,13 +34,15 @@ Values approximated are:
 ==========================================================================
 '''
 
+imported_data   = DI.simulation_cases['01']#DI.imported_data
+appendix_result = DI.appendix_result
 
 print ('Approximating probability disitributions: ...')
 
-total_num_flights = len(DI.imported_data['Fl No. Arrival'].unique())
+total_num_flights = len(imported_data['Fl No. Arrival'].unique())
 
 ### AIRCRAFT TYPE
-AC_count = pd.DataFrame(DI.appendix_result['AC Type'].value_counts().reset_index())
+AC_count = pd.DataFrame(appendix_result['AC Type'].value_counts().reset_index())
 AC_count.columns = ['AC Type', 'Count']
 
 AC_count['Probs'] = AC_count['Count']/sum(list(AC_count['Count']))
@@ -82,17 +84,38 @@ def sampler(sample_mold, to_be_sampeled):
     return count
 
 
-arrival_times   = list(pd.to_datetime(DI.imported_data['ATA']))
-departure_times = list(pd.to_datetime(DI.imported_data['ATD']))
+# Getting Arrival and Departure times of flight numbers (split flights will be combined as one)
+arrival_times   = []
+departure_times = []
+flight_numbers  = list(imported_data['Fl No. Arrival'].unique())
+for i, flight_number in enumerate(flight_numbers):
+    
+    flight_data = imported_data[imported_data['Fl No. Arrival'] == flight_number]
+    
+    if len(flight_data) == 1:
+        arrival_times  .append(list(pd.to_datetime(flight_data['ATA']))[0])
+        departure_times.append(list(pd.to_datetime(flight_data['ATD']))[0])
+        
+    elif len(flight_data) > 1:
+        arrival_times  .append(list(pd.to_datetime(flight_data[flight_data['Flight Type']=='Arr']['ATA']))[0])
+        departure_times.append(list(pd.to_datetime(flight_data[flight_data['Flight Type']=='Dep']['ATD']))[0])
+        
+    
+
 aircraft_stay = []
+count = 0
 for i in range(len(arrival_times)):
+    
     if departure_times[i] > arrival_times[i]:
         duration = departure_times[i] - arrival_times[i]        
     else:
         duration = arrival_times[i] - departure_times[i]
+        
+    if duration > datetime.timedelta(hours=5, minutes=40):
+        count += 1
 
     aircraft_stay.append(duration.total_seconds())
-
+print (round(100*count/len(arrival_times), 2), '% of flights are "long stay" flights')
 
 
 

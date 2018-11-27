@@ -24,7 +24,7 @@ more info)
 '''
 
 
-def generate_aircraft(sample_size=10, every_n_minutes=20, show_result=0):
+def generate_aircraft(sample_size=10, every_n_minutes=12, show_result=0):
 
     # Inputs:
     #   sample_size     : Is the number of flights to be generated
@@ -85,8 +85,11 @@ def generate_aircraft(sample_size=10, every_n_minutes=20, show_result=0):
     night_probs = list(np.array(night_probs)/np.sum(night_probs))
 
 
+    # Other variables
+    move_types = ['Arr', 'Park', 'Dep']
     
     # Generating data
+    count = 0
     generated_input_data = []
     for i in range(sample_size):
         
@@ -100,33 +103,62 @@ def generate_aircraft(sample_size=10, every_n_minutes=20, show_result=0):
         AC_ATD  = AC_ATA + AC_STAY
 
 
-        # If the stay is longer than 5h40 => long stay
-        Long_stay = AC_STAY > datetime.timedelta(hours=5, minutes=40)
-
-
-        # If the stay is longer than 5h40 => long stay
+        # Night stay determination
         Night_stay = AC_ATA.date() < AC_ATD.date()
 
         # Adapting flight departure time if between midnight and 6AM
-        if Night_stay and (AC_ATD - datetime.datetime.today() < datetime.timedelta(hours=5, minutes=59)):
+        tomorrow_midnight = pd.to_datetime('today') + datetime.timedelta(days=1)
+        if Night_stay and ( (AC_ATD - tomorrow_midnight) < datetime.timedelta(hours=5, minutes=59) ):
             
-            #Midnight + 6h + random extra time (normal distributed)
-            AC_ATD = pd.to_datetime('today')      + \
+            #Midnight + 6h + random extra time (normal distributed) #datetime.timedleta(days=1) 
+            AC_ATD = tomorrow_midnight            + \
                      datetime.timedelta(hours=6)  + \
                      np.random.choice(time_deltas , p = night_probs)
-
-        
             
-        # Saving generated data
-        generated_input_data.append({'flight index': i          ,
-                                     'ac type'     : AC_type    ,
-                                     'ata'         : AC_ATA     ,
-                                     'atd'         : AC_ATD     ,
-                                     'long stay'   : Long_stay  ,
-                                     'night stay'  : Night_stay ,
-                                     'Fl No. Arrival'  :'KQ117' ,
-                                     'Fl No. Departure':'KQ116' ,
-                                     })
+            AC_STAY = AC_ATD - AC_ATA
+
+
+
+        # If the stay is longer than 5h40 => long stay (a.ka. splitTED flight)
+        Long_stay = AC_STAY > datetime.timedelta(hours=5, minutes=40)
+
+
+        # Saving generated data (in case of long stay, the flight is split)
+        if Long_stay:
+            count += 1
+            
+            time_arrival_procedure   = 90 # [minutes]
+            time_departure_procedure = 90 # [minutes]
+
+            time_intervals = {move_types[0]:[AC_ATA, AC_ATA + datetime.timedelta(minutes=90)],
+                              move_types[1]:[AC_ATA + datetime.timedelta(minutes=90),
+                                             AC_ATD - datetime.timedelta(minutes=90)],
+                              move_types[2]:[AC_ATD - datetime.timedelta(minutes=90), AC_ATD]}
+            
+            
+            for move_type in move_types:
+                generated_input_data.append({'flight index': i          ,
+                                             'move type'   : move_type  ,
+                                             'ac type'     : AC_type    ,
+                                             'ata'         : time_intervals[move_type][0],
+                                             'atd'         : time_intervals[move_type][1],
+                                             'long stay'   : Long_stay  ,
+                                             'night stay'  : Night_stay ,
+                                             'Fl No. Arrival'  :'KQ117' ,
+                                             'Fl No. Departure':'KQ116' ,
+                                             })
+            
+        else:
+            generated_input_data.append({'flight index': i          ,
+                                         'move type'   : 'Full'     ,
+                                         'ac type'     : AC_type    ,
+                                         'ata'         : AC_ATA     ,
+                                         'atd'         : AC_ATD     ,
+                                         'long stay'   : Long_stay  ,
+                                         'night stay'  : Night_stay ,
+                                         'Fl No. Arrival'  :'KQ117' ,
+                                         'Fl No. Departure':'KQ116' ,
+                                         })
 
     #Showing generated input to user
     if show_result:
@@ -134,7 +166,15 @@ def generate_aircraft(sample_size=10, every_n_minutes=20, show_result=0):
         pandas_inputs = pd.DataFrame.from_records(generated_input_data)
         pandas_inputs['ata'] = pandas_inputs['ata'].dt.strftime('%H:%M (%d/%m)')
         pandas_inputs['atd'] = pandas_inputs['atd'].dt.strftime('%H:%M (%d/%m)')
-        pandas_inputs = pandas_inputs[['flight index', 'ac type', 'Fl No. Arrival', 'ata', 'Fl No. Departure', 'atd', 'long stay', 'night stay']]
+        pandas_inputs = pandas_inputs[['flight index'    ,
+                                       'move type'       ,
+                                       'Fl No. Arrival'  ,
+                                       'ata'             ,
+                                       'Fl No. Departure',
+                                       'atd'             ,
+                                       'long stay'       ,
+                                       'night stay'      ,
+                                       'ac type'         ]]
         print (pandas_inputs, '\n')
 
     return generated_input_data
