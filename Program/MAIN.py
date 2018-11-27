@@ -19,7 +19,7 @@ import Data_importer as DI
 
 
 # [0] Generate Input Data
-input_data = IG.generate_aircraft(sample_size=30, show_result=1)
+input_data = IG.generate_aircraft(sample_size=30, show_result=0)
 
 
 # [1] Objective function coefficients
@@ -44,10 +44,19 @@ print ('Adding Constraints: ...')
 start_constraints = time.time()
 
 # --> Bay Compliance
-Bay_Assignement, bay_constraints = CONSTR.add_bay_compliance(input_data, Bay_Assignement, flight_vars)
+Bay_Assignement, bay_constraints  = CONSTR.add_bay_compliance(input_data, Bay_Assignement, flight_vars)
 
 # --> Time Constraint
-Bay_Assignement, time_conflicts  = CONSTR.add_time_constraint(input_data, Bay_Assignement, flight_vars)
+Bay_Assignement, time_conflicts   = CONSTR.add_time_constraint(input_data, Bay_Assignement, flight_vars)
+
+# --> Fuel Constraint
+Bay_Assignement, fuel_constraints = CONSTR.add_fuelling_constraint(input_data, Bay_Assignement, flight_vars)
+
+# --> Adjancy Constraint
+#Bay_Assignement = Bay_Assignement
+
+# --> Night Stay Constraint
+#Bay_Assignement = Bay_Assignement
 
 print ('Adding Constraints: DONE ('+str(round(time.time() - start_constraints, 3))+' seconds)\n')
 
