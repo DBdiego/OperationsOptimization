@@ -10,7 +10,7 @@ import Data_importer as DI
 
 # Importing data
 aircraft_type2characteristics = DI.aircraft_type2characteristics
-flight_no2aircraft_type = DI.flight_no2aircraft_type
+#flight_no2aircraft_type = DI.flight_no2aircraft_type
 group2bay_compliance    = DI.group2bay_compliance
 bay_distances           = DI.bay_distances
 preferences             = DI.preferences
