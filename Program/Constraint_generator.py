@@ -156,7 +156,7 @@ def add_fuelling_constraint(input_data, Bay_Assignement, flight_vars):
 
             constraint_collection.update({'F' + str(i): {'constraint': constraint,
                                                           'variables': constraint_vars}})
-            Bay_Assignement += pulp.lpSum([constraint[i] * flight_vars[i] for i in constraint_vars]) == 1, 'F' + str(i)
+            Bay_Assignement += pulp.lpSum([constraint[i] * flight_vars[i] for i in constraint_vars]) >= 1, 'F' + str(i)
 
 
     return Bay_Assignement, constraint_collection
