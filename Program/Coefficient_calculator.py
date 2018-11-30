@@ -10,19 +10,18 @@ import Data_importer as DI
 
 # Importing data
 aircraft_type2characteristics = DI.aircraft_type2characteristics
-flight_no2aircraft_type = DI.flight_no2aircraft_type
+#flight_no2aircraft_type = DI.flight_no2aircraft_type
 group2bay_compliance    = DI.group2bay_compliance
 bay_distances           = DI.bay_distances
 preferences             = DI.preferences
 
 
-def coefficient_calculator(input_data, terminal, alpha=1, beta=1):
+def coefficient_calculator(input_data, alpha=1, beta=1):
 
     coefficients = {}
     
     all_bays = np.array(list(group2bay_compliance['Bay']))
-    terminal_distances = bay_distances[['Bay', terminal]]
-
+    
     # Creating arrays for coefficients of the 2 objective functions
     max_possibilities = len(input_data)*len(all_bays)
     z1_coefficients = np.zeros(max_possibilities)
@@ -56,7 +55,18 @@ def coefficient_calculator(input_data, terminal, alpha=1, beta=1):
             flight_index_pref = list(preferences['Fl No.']).index(flight_number_departure)
             preference_bays = (preferences['Bay'].iloc[flight_index_pref]).split(',')
 
-        
+
+        # Determining the reference point of the flight
+        if flight_data['connection'] == 'Dom':
+            terminal_distances = bay_distances[['Bay', 'A']]
+            
+        elif flight_data['airline'] == 'KQ':
+            terminal_distances = bay_distances[['Bay', 'D']]
+            
+        else:
+            terminal_distances = bay_distances[['Bay', 'C']] #??? No info on which reference point to choose between B & C...
+            
+
         # Loop over all possible bays
         for j, bay in enumerate(all_bays):
             
