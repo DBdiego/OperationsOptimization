@@ -160,3 +160,47 @@ def add_fuelling_constraint(input_data, Bay_Assignement, flight_vars):
 
 
     return Bay_Assignement, constraint_collection
+
+# SPLIT(TED) FLIGHT CONSTRAINT
+def add_split_constraint(input_data, Bay_Assignment, flight_vars):
+    print ('  ---> Adding Split Flight Constraints ...')
+
+    i = 0
+
+    while i < len(input_data):
+
+        # Defining coefficient of constraint
+        constraint_1 = {}
+        constraint_2 = {}
+        constraint_vars_1 = []
+        constraint_vars_2 = []
+
+        if int(input_data[i]['move type'] == 'Full') == 0:
+            for k, bay in enumerate(all_bays):
+                '''
+                constraint_variable_1 = 'x_' + str(i) + '_' + bay
+                constraint_variable_2 = 'x_' + str(i+1) + '_' + bay
+                constraint_variable_3 = 'x_' + str(i+2) + '_' + bay
+                '''
+                constraint_variable_1 = str(i) + '_' + bay
+                constraint_variable_2 = str(i+1) + '_' + bay
+                constraint_variable_3 = str(i+2) + '_' + bay
+
+                # Constraint 1
+                constraint_1.update({constraint_variable_1: 1,
+                                     constraint_variable_2: -1})
+                constraint_vars_1 = constraint_vars_1 + [constraint_variable_1, constraint_variable_2]
+
+                # Constraint 2
+                constraint_2.update({constraint_variable_2: 1,
+                                     constraint_variable_3: -1})
+                constraint_vars_2 = constraint_vars_2 + [constraint_variable_2, constraint_variable_3]
+
+
+            Bay_Assignment += pulp.lpSum([constraint_1[l] * flight_vars[l] for l in constraint_vars_1]) == 0, 'SPF' + str(i  ) + 'B' + str(k) 
+            Bay_Assignment += pulp.lpSum([constraint_2[l] * flight_vars[l] for l in constraint_vars_2]) == 0, 'SPF' + str(i+1) + 'B' + str(k)
+            
+            i += 2 # To skip 'Park' & 'Dep'
+        i += 1
+
+    return Bay_Assignment
