@@ -19,11 +19,11 @@ import Data_importer as DI
 
 
 # [0] Generate Input Data
-input_data = IG.generate_aircraft(sample_size=30, show_result=0)
+input_data = IG.generate_aircraft(sample_size=102, show_result=0)
 
 
 # [1] Objective function coefficients
-coefficients = CC.coefficient_calculator(input_data, 'A', alpha=1, beta=1)
+coefficients = CC.coefficient_calculator(input_data, alpha=1, beta=1)
 flight_var_indices = [x for x in coefficients]
 
 
