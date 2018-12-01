@@ -113,8 +113,11 @@ def generate_aircraft(sample_size=10, every_n_minutes=12, show_result=0):
                             AL_connection_distr[Airline]['int_probs']]
         AL_connection = np.random.choice(['DOM', 'INT'], p = connection_probs)
 
-
-
+        # Flight Number
+        ref_number = np.random.randint(100, 999)
+        flight_number_in = Airline + str(ref_number)
+        flight_number_out = Airline + str(ref_number + np.random.choice([-1, 1], p=[0.5, 0.5]))
+        
         # Computing time of departure
         AC_ATD  = AC_ATA + AC_STAY
 
@@ -161,8 +164,8 @@ def generate_aircraft(sample_size=10, every_n_minutes=12, show_result=0):
                                              'long stay'   : Long_stay    ,
                                              'night stay'  : Night_stay   ,
                                              'connection'  : AL_connection, 
-                                             'Fl No. Arrival'  :'KQ117'   ,
-                                             'Fl No. Departure':'KQ116'   ,
+                                             'Fl No. Arrival'  :flight_number_in  ,
+                                             'Fl No. Departure':flight_number_out ,
                                              })
             
         else:
@@ -175,17 +178,28 @@ def generate_aircraft(sample_size=10, every_n_minutes=12, show_result=0):
                                          'long stay'   : Long_stay    ,
                                          'night stay'  : Night_stay   ,
                                          'connection'  : AL_connection, 
-                                         'Fl No. Arrival'  :'KQ117'   ,
-                                         'Fl No. Departure':'KQ116'   ,
+                                         'Fl No. Arrival'  :flight_number_in   ,
+                                         'Fl No. Departure':flight_number_out   ,
                                          })
 
     #Showing generated input to user
     if show_result:
         print ('GENERATED INPUT:')
-        pandas_inputs = pd.DataFrame.from_records(generated_input_data)
-        pandas_inputs['ata'] = pandas_inputs['ata'].dt.strftime('%H:%M (%d/%m)')
-        pandas_inputs['atd'] = pandas_inputs['atd'].dt.strftime('%H:%M (%d/%m)')
-        pandas_inputs = pandas_inputs[['flight index'    ,
+        inputs_dataframe = inputs_list2dataframe(generated_input_data)
+        print (inputs_dataframe, '\n')
+
+
+    return generated_input_data
+
+
+
+# Function to convert input_data variable from list to pandas dataframe
+def inputs_list2dataframe(input_data):
+
+    input_dataframe = pd.DataFrame.from_records(input_data)
+    input_dataframe['ata'] = input_dataframe['ata'].dt.strftime('%H:%M (%d/%m)')
+    input_dataframe['atd'] = input_dataframe['atd'].dt.strftime('%H:%M (%d/%m)')
+    input_dataframe = input_dataframe[['flight index'    ,
                                        'airline'         ,
                                        'move type'       ,
                                        'Fl No. Arrival'  ,
@@ -196,9 +210,6 @@ def generate_aircraft(sample_size=10, every_n_minutes=12, show_result=0):
                                        'night stay'      ,
                                        'connection'      ,
                                        'ac type'         ]]
-        print (pandas_inputs, '\n')
-
-    return generated_input_data
-
-
+    
+    return input_dataframe
 

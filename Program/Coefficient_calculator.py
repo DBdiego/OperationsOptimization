@@ -16,9 +16,11 @@ bay_distances           = DI.bay_distances
 preferences             = DI.preferences
 
 
-def coefficient_calculator(input_data, alpha=1, beta=1):
+def coefficient_calculator(input_data, alpha=1, beta=1, gamma=1):
 
+    # Creating Variables
     coefficients = {}
+
     
     all_bays = np.array(list(group2bay_compliance['Bay']))
     
@@ -26,6 +28,7 @@ def coefficient_calculator(input_data, alpha=1, beta=1):
     max_possibilities = len(input_data)*len(all_bays)
     z1_coefficients = np.zeros(max_possibilities)
     z2_coefficients = np.zeros(max_possibilities)
+    
 
 
     print ('Generating Coefficients: ...')
@@ -54,7 +57,8 @@ def coefficient_calculator(input_data, alpha=1, beta=1):
         elif flight_number_departure in preferences['Fl No.'].unique():
             flight_index_pref = list(preferences['Fl No.']).index(flight_number_departure)
             preference_bays = (preferences['Bay'].iloc[flight_index_pref]).split(',')
-
+        else:
+            preference_bays = []
 
         # Determining the reference point of the flight
         if flight_data['connection'] == 'Dom':
@@ -64,7 +68,8 @@ def coefficient_calculator(input_data, alpha=1, beta=1):
             terminal_distances = bay_distances[['Bay', 'D']]
             
         else:
-            terminal_distances = bay_distances[['Bay', 'C']] #??? No info on which reference point to choose between B & C...
+            terminal_choice = np.random.choice(['B', 'C'], p=[0.5, 0.5])
+            terminal_distances = bay_distances[['Bay', terminal_choice]]
             
 
         # Loop over all possible bays
@@ -88,8 +93,11 @@ def coefficient_calculator(input_data, alpha=1, beta=1):
                 coefficient += 0 * beta
 
             # Assigning Coefficient to a decision variable name
-            coefficients.update({str(i) + '_' + bay : coefficient})
-
+            coefficients.update({str(i) + '_' + bay : coefficient ,})
+                                 #'u_' + str(i) + '_' + bay : -gamma      ,
+                                 #'v_' + str(i) + '_' + bay : -gamma      ,
+                                 #'w_' + str(i) + '_' + bay : -gamma      })
+            
             
             gobal_index += 1
 
