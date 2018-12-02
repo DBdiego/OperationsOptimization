@@ -19,12 +19,12 @@ import Data_exporter as DE
 
 
 # [0] Generate Input Data
-input_data = IG.generate_aircraft(sample_size=30, show_result=0)
+input_data = IG.generate_aircraft(sample_size=110, show_result=0)
 
 
 
-# [1] Objective function coefficients
-coefficients = CC.coefficient_calculator(input_data, alpha=1, beta=1)
+# [1] Objective function coefficients & Weights
+coefficients = CC.coefficient_calculator(input_data)
 flight_var_indices = [x for x in coefficients]
 
 
@@ -35,7 +35,7 @@ Bay_Assignment = pulp.LpProblem('Bay Assignment', pulp.LpMaximize)
 
 
 # [3] Defining Variables of the problem
-flight_vars = pulp.LpVariable.dicts('x',flight_var_indices,0, 1, pulp.LpBinary)
+flight_vars = pulp.LpVariable.dicts('DV',flight_var_indices,0, 1, pulp.LpBinary)
 
 
 

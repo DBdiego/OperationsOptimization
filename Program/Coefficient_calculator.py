@@ -10,18 +10,15 @@ import Data_importer as DI
 
 # Importing data
 aircraft_type2characteristics = DI.aircraft_type2characteristics
-#flight_no2aircraft_type = DI.flight_no2aircraft_type
-group2bay_compliance    = DI.group2bay_compliance
-bay_distances           = DI.bay_distances
-preferences             = DI.preferences
+group2bay_compliance = DI.group2bay_compliance
+bay_distances        = DI.bay_distances
+preferences          = DI.preferences
 
-
-def coefficient_calculator(input_data, alpha=1, beta=1, gamma=1):
+def coefficient_calculator(input_data):
 
     # Creating Variables
     coefficients = {}
 
-    
     all_bays = np.array(list(group2bay_compliance['Bay']))
     
     # Creating arrays for coefficients of the 2 objective functions
@@ -31,10 +28,10 @@ def coefficient_calculator(input_data, alpha=1, beta=1, gamma=1):
     
 
 
-    print ('Generating Coefficients: ...')
+    print ('Generating Coefficients & Weights: ...')
     start_time = time.time()
-    
-    
+
+
     # Determining coefficients of decision variables
     gobal_index = 0
     for i in range(len(input_data)):
@@ -70,19 +67,26 @@ def coefficient_calculator(input_data, alpha=1, beta=1, gamma=1):
         else:
             terminal_choice = np.random.choice(['B', 'C'], p=[0.5, 0.5])
             terminal_distances = bay_distances[['Bay', terminal_choice]]
-            
 
-        # Loop over all possible bays
+            
+         # Loop over all possible bays
         for j, bay in enumerate(all_bays):
             
+
             # Find terminal Distance
             distance = int(terminal_distances.loc[terminal_distances['Bay'].isin([bay])].iloc[0, 1])
+
+            # Calculating the weights
+            max_distance_bay = max( list(bay_distances.loc[bay_distances['Bay'].isin([bay])].iloc[0, 1:]) )
+            alpha = 1
+            beta  = max_distance_bay * aircraft_capacity        #max_distance_bay
+            gamma = 3 * beta     #max_distance_bay
 
 
             # Compute coefficient of first objective function
             z1_coefficients[gobal_index] = aircraft_capacity * distance
-            coefficient = (aircraft_capacity * distance)*-1*alpha
-
+            
+            coefficient = (aircraft_capacity * distance)*(-1) * alpha
 
             # Coefficient of second objective function
             if j in preference_bays:
@@ -93,10 +97,10 @@ def coefficient_calculator(input_data, alpha=1, beta=1, gamma=1):
                 coefficient += 0 * beta
 
             # Assigning Coefficient to a decision variable name
-            coefficients.update({str(i) + '_' + bay : coefficient ,})
-                                 #'u_' + str(i) + '_' + bay : -gamma      ,
-                                 #'v_' + str(i) + '_' + bay : -gamma      ,
-                                 #'w_' + str(i) + '_' + bay : -gamma      })
+            coefficients.update({'x_' + str(i) + '_' + bay : coefficient ,
+                                 'u_' + str(i) + '_' + bay : -gamma      ,
+                                 'v_' + str(i) + '_' + bay : -gamma      ,
+                                 'w_' + str(i) + '_' + bay : -gamma      })
             
             
             gobal_index += 1
@@ -107,7 +111,7 @@ def coefficient_calculator(input_data, alpha=1, beta=1, gamma=1):
                          beta  *      z2_coefficients
 
 
-    print ('Generating Coefficients: DONE (' + str(round(time.time()-start_time, 3)) +' seconds)\n')
+    print ('Generating Coefficients & Weights: DONE (' + str(round(time.time()-start_time, 3)) +' seconds)\n')
     
     return coefficients #, final_coefficients, [z1_coefficients, z2_coefficients], coefficients
 

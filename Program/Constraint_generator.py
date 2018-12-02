@@ -35,7 +35,7 @@ def add_bay_compliance(input_data, Bay_Assignment, flight_vars):
         constraint = {}
         constraint_vars = []
         for j, bay in enumerate(compliant_bays):
-            constraint_variable = str(i) + '_' + bay
+            constraint_variable = 'x_' + str(i) + '_' + bay
             
             constraint.update({constraint_variable:1})
             constraint_vars.append(constraint_variable)
@@ -87,11 +87,13 @@ def add_time_constraint(input_data, Bay_Assignment, flight_vars):
 
                         # Creating a constraint for all conflict bays
                         for k, bay in enumerate(conflicting_bays):
-                            constraint_name = 'TCI'+str(i)+'O'+str(j)+'B'+bay
+                            constraint_name = 'TCI' + str(i) + 'O' + str(j) + 'B' + bay
                             
-                            constraint_vars = [str(i)+'_'+bay, str(j)+'_'+bay]
-                            constraint_coef = {str(i)+'_'+bay: 1,
-                                               str(j)+'_'+bay: 1}
+                            constraint_vars = ['x_' + str(i) + '_' + bay,
+                                               'x_' + str(j) + '_' + bay]
+                            constraint_coef = {'x_' + str(i) + '_' + bay: 1,
+                                               'x_' + str(j) + '_' + bay: 1}
+                            
                             Bay_Assignment += pulp.lpSum([constraint_coef[i]*flight_vars[i] for i in constraint_vars]) <= 1, constraint_name
 
     return Bay_Assignment, time_conflict_matrix
@@ -133,7 +135,7 @@ def add_fuelling_constraint(input_data, Bay_Assignment, flight_vars):
         if move_type== 'Full' or (domestic == 0 and move_type == 'Dep'): 
 
             for j, bay in enumerate(fuelling_bays):
-                constraint_variable = str(i) + '_' + bay
+                constraint_variable = 'x_' + str(i) + '_' + bay
 
                 constraint.update({constraint_variable: 1})
                 constraint_vars.append(constraint_variable)
@@ -147,7 +149,10 @@ def add_fuelling_constraint(input_data, Bay_Assignment, flight_vars):
         if (long_stay == 1 and domestic==1 and move_type=='Dep'): 
 
             for j, bay in enumerate(fuelling_bays):
-                constraint_variables = [str(i-1) + '_' + bay , str(i) + '_' + bay]  #Take into account flight i (departure phase) and i-1 (parking phase)
+                
+                #Take into account flight i (departure phase) and i-1 (parking phase)
+                constraint_variables = ['x_' + str(i-1) + '_' + bay ,
+                                        'x_' + str(i  ) + '_' + bay ]  
 
                 constraint.update({constraint_variables[0]: 1, constraint_variables[1]: 1})
 
@@ -181,19 +186,36 @@ def add_split_constraint(input_data, Bay_Assignment, flight_vars):
         if int(input_data[i]['move type'] == 'Full') == 0:
             for k, bay in enumerate(all_bays):
 
-                constraint_variable_1 = str(i)   + '_' + bay #'x_' + str(i) + '_'   + bay
-                constraint_variable_2 = str(i+1) + '_' + bay #'x_' + str(i+1) + '_' + bay
-                constraint_variable_3 = str(i+2) + '_' + bay #'x_' + str(i+2) + '_' + bay
+                constraint_variable_1 = 'x_' + str(i  ) + '_' + bay
+                constraint_variable_2 = 'x_' + str(i+1) + '_' + bay
+                constraint_variable_3 = 'x_' + str(i+2) + '_' + bay
+                
+                constraint_variable_4 = 'v_' + str(i  ) + '_' + bay
+                constraint_variable_5 = 'v_' + str(i+1) + '_' + bay
+                
+                constraint_variable_6 = 'w_' + str(i+1) + '_' + bay
+                constraint_variable_7 = 'w_' + str(i+2) + '_' + bay
+                
 
                 # Constraint 1
-                constraint_1.update({constraint_variable_1: 1,
-                                     constraint_variable_2: -1})
-                constraint_vars_1 = constraint_vars_1 + [constraint_variable_1, constraint_variable_2]
+                constraint_1.update({constraint_variable_1:  1,
+                                     constraint_variable_2: -1,
+                                     constraint_variable_4: -1,
+                                     constraint_variable_6:  1})
+                constraint_vars_1 = constraint_vars_1 + [constraint_variable_1,
+                                                         constraint_variable_2,
+                                                         constraint_variable_4,
+                                                         constraint_variable_6]
 
                 # Constraint 2
-                constraint_2.update({constraint_variable_2: 1,
-                                     constraint_variable_3: -1})
-                constraint_vars_2 = constraint_vars_2 + [constraint_variable_2, constraint_variable_3]
+                constraint_2.update({constraint_variable_2:  1,
+                                     constraint_variable_3: -1,
+                                     constraint_variable_5: -1,
+                                     constraint_variable_7:  1})
+                constraint_vars_2 = constraint_vars_2 + [constraint_variable_2,
+                                                         constraint_variable_3,
+                                                         constraint_variable_5,
+                                                         constraint_variable_7]
 
 
             Bay_Assignment += pulp.lpSum([constraint_1[l] * flight_vars[l] for l in constraint_vars_1]) == 0, 'SPF' + str(i  ) + 'B' + str(k) 
@@ -248,30 +270,30 @@ def add_adjancy_constraint(input_data, Bay_Assignment, flight_vars):
                             time_departure_overlap[i,j] = 1
     
                             # Make constraints for bays 10 and 11 (share a gate)
-                            constraint1.update({ str(i) + '_10' : 1 ,
-                                                 str(i) + '_11' : 1 ,
-                                                 str(j) + '_10' : 1 ,
-                                                 str(j) + '_11' : 1 })
+                            constraint1.update({ 'x_' + str(i) + '_10' : 1 ,
+                                                 'x_' + str(i) + '_11' : 1 ,
+                                                 'x_' + str(j) + '_10' : 1 ,
+                                                 'x_' + str(j) + '_11' : 1 })
         
-                            constraint_vars1 = constraint_vars1 +[ str(i) + '_10' ,
-                                                                   str(i) + '_11' ,
-                                                                   str(j) + '_10' ,
-                                                                   str(j) + '_11' ]
+                            constraint_vars1 = constraint_vars1 + ['x_' + str(i) + '_10' ,
+                                                                   'x_' + str(i) + '_11' ,
+                                                                   'x_' + str(j) + '_10' ,
+                                                                   'x_' + str(j) + '_11' ]
 
                             Bay_Assignment += pulp.lpSum([constraint1[k]*flight_vars[k] for k in constraint_vars1]) <= 1, 'ADJ1011I'+str(i)+'O'+str(j)
 
 
 
                             # Make constraints for bays 5 and 6 (share a gate)
-                            constraint2.update({ str(i) + '_5' : 1 ,
-                                                 str(i) + '_6' : 1 ,
-                                                 str(j) + '_5' : 1 ,
-                                                 str(j) + '_6' : 1 })
+                            constraint2.update({ 'x_' + str(i) + '_5' : 1 ,
+                                                 'x_' + str(i) + '_6' : 1 ,
+                                                 'x_' + str(j) + '_5' : 1 ,
+                                                 'x_' + str(j) + '_6' : 1 })
         
-                            constraint_vars2 = constraint_vars2 + [ str(i) + '_5' ,
-                                                                    str(i) + '_6' ,
-                                                                    str(j) + '_5' ,
-                                                                    str(j) + '_6' ]
+                            constraint_vars2 = constraint_vars2 + [ 'x_' + str(i) + '_5' ,
+                                                                    'x_' + str(i) + '_6' ,
+                                                                    'x_' + str(j) + '_5' ,
+                                                                    'x_' + str(j) + '_6' ]
                             
                             Bay_Assignment += pulp.lpSum([constraint2[k]*flight_vars[k] for k in constraint_vars2]) <= 1, 'ADJ56I'+str(i)+'O'+str(j)
 

@@ -27,10 +27,9 @@ def save_data(input_data, Bay_Assignement):
     bay_assignment = list(np.zeros(len(input_data)))
     
     for decision_variable in Bay_Assignement.variables():
-        
-        if int(decision_variable.varValue):
+        if int(decision_variable.varValue) and decision_variable.name.find('x') != -1:
             
-            x, flight_index, bay = decision_variable.name.split('_')
+            dv, var_type, flight_index, bay = decision_variable.name.split('_')
             bay_assignment[int(flight_index)] = bay
 
 
