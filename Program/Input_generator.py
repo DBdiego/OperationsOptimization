@@ -57,7 +57,8 @@ def generate_aircraft(sample_size=10, every_n_minutes=12, show_result=0):
 
     
     # Time Conversions
-    AC_ATA_distr ['Time'] = pd.to_timedelta(AC_ATA_distr ['Time']) + pd.to_datetime('today')
+    midnight_today = pd.to_datetime('today').replace(hour=0, minute=0, second=0, microsecond=0)
+    AC_ATA_distr ['Time'] = pd.to_timedelta(AC_ATA_distr ['Time']) + midnight_today
     AC_STAY_distr['Time'] = pd.to_timedelta(AC_STAY_distr['Time'])
 
     # Conversion to lists 
@@ -96,7 +97,7 @@ def generate_aircraft(sample_size=10, every_n_minutes=12, show_result=0):
 
     # Other variables
     move_types = ['Arr', 'Park', 'Dep']
-    tomorrow_midnight = pd.to_datetime('today') + datetime.timedelta(days=1)
+    tomorrow_midnight = midnight_today + datetime.timedelta(days=1)
     
     # Generating data
     count = 0

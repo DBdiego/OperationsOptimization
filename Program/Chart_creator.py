@@ -7,6 +7,7 @@ import datetime
 
 # --> Module classes
 import matplotlib.dates  as mdates
+import matplotlib.lines as mlines
 import matplotlib.pyplot as plt
 from math import *
 
@@ -97,7 +98,7 @@ def gant_chart(input_data, chart_title, show=0, save=1):
 
             #Ploting the data
             ax.plot([pd.to_datetime('today'), ata],[i+1, i+1], c='k', ls='--', lw=0.3, alpha=0.2)
-            ax.plot([ata, atd],[i+1, i+1], c=color, lw=1.5,label=label)
+            ax.plot([ata, atd],[i+1, i+1], c=color, lw=1.5)#,label=label)
             
 
         
@@ -111,7 +112,11 @@ def gant_chart(input_data, chart_title, show=0, save=1):
         
         ax.set_ylabel('Flight Numbers')
         ax.set_xlabel('Time')
-        ax.legend(loc='lower left')
+
+        #Legend
+        short_stay_line = mlines.Line2D([],[], color='b', label='short stay')
+        long_stay_line  = mlines.Line2D([],[], color='r', label='long stay' )
+        ax.legend(handles=[short_stay_line, long_stay_line],loc='lower left')
 
         #Remove useless part of the box
         ax.spines[  'top'].set_visible(False)
