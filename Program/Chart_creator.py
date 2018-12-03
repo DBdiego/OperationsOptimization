@@ -62,7 +62,7 @@ def assign_time_data2FN(input_dataframe, sort_category='', ascending=True):
     
     
 
-def gant_chart(input_data, chart_title, show=1, save=1):
+def gant_chart(input_data, chart_title, show=0, save=1):
 
     if show or save:
         
@@ -71,7 +71,7 @@ def gant_chart(input_data, chart_title, show=1, save=1):
 
 
         # Plot Characteristics
-        fig_size_unit_x, fig_size_unit_y = [18,9]
+        fig_size_unit_x, fig_size_unit_y = [18,(0.20 * len(unique_flight_numbers))]
         
         fig = plt.figure(figsize=(fig_size_unit_x, fig_size_unit_y))
         ax  = fig.add_subplot(111)
@@ -118,7 +118,9 @@ def gant_chart(input_data, chart_title, show=1, save=1):
         ax.spines['right'].set_visible(False)
 
         #Others
-        plt.grid(axis = 'x', alpha = 0.8, zorder = 0)
+        plt.grid(axis = 'x', alpha = 0.8, zorder = 0)   
+        plt.subplots_adjust(left=0.075, bottom=0.075, right=0.99, top=0.94, wspace=0.1, hspace=0.4)
+
 
         if save:
             plt.savefig('./outputs/'+ chart_title.replace(' ', '_') + '.pdf')

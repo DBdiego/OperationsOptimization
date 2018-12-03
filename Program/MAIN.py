@@ -20,7 +20,7 @@ import Converters as CONV
 
 
 # [0] Generate Input Data
-input_data = IG.generate_aircraft(sample_size=50, show_result=0)
+input_data = IG.generate_aircraft(sample_size=30, show_result=0)
 
 
 # [1] Objective function coefficients & Weights
