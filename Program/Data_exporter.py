@@ -11,15 +11,17 @@ from openpyxl import Workbook
 from openpyxl.utils.dataframe import dataframe_to_rows
 
 # --> Home made files
-import Input_generator as IG
+import Chart_creator as ChC
+import Converters as CONV
+
 
 
 def save_data(input_data, Bay_Assignement):
     print ('Exporting data to Excel: ...')
-    start_time = time.time()
+    start_time_export = time.time()
 
     # Converting input_data from list to dataframe (for later)
-    input_dataframe  = IG.inputs_list2dataframe(input_data)
+    input_dataframe  = CONV.inputs_list2dataframe(input_data)
     output_dataframe = input_dataframe
     
 
@@ -76,7 +78,18 @@ def save_data(input_data, Bay_Assignement):
     # Exporting all data to excel
     export_2_excel(input_dataframe, output_dataframe, towings_dataframe)
 
-    print ('Exporting data to Excel: DONE (' + str(round(time.time()-start_time, 3)) +' seconds)\n')
+    print ('Exporting data to Excel: DONE (' + str(round(time.time()-start_time_export, 3)) +' seconds)\n')
+
+
+
+    # Creating Charts
+    print ('Generating charts: ...')
+    start_time_charts = time.time()
+
+    ChC.generate_charts(input_dataframe, output_dataframe, towings_dataframe)
+    
+    print ('Generating charts: DONE (' + str(round(time.time()-start_time_charts, 3)) +' seconds)\n')
+    
     
     return output_dataframe
 

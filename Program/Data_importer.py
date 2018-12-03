@@ -93,9 +93,6 @@ preferences          = pd.read_csv(open(base_directory+'/Preference Table.csv'),
 
 #-- csv to dictionary
 aircraft_type2characteristics = CONV.csv2dict(base_directory+'/Aircraft_type2characteristics.csv' , sep=',', main_cat='AC Type')
-#flight_no2aircraft_type       = CONV.csv2dict(base_directory+'/flight_no2aircraft_type.csv'       , sep=',')
-#aircraft_type2group           = CONV.csv2dict(base_directory+'/Aircraft_type2Group.csv'           , sep=',')
-
 
 print ('Importing info: DONE \n')
 

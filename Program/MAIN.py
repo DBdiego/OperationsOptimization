@@ -10,21 +10,21 @@ import time
 from math import *
 
 # --> Home made files
-import Coefficient_calculator as CC
+import Coefficient_calculator as CoC
 import Constraint_generator as CONSTR
 import Input_generator as IG
 import Data_importer as DI
 import Data_exporter as DE
+import Converters as CONV
 
 
 
 # [0] Generate Input Data
-input_data = IG.generate_aircraft(sample_size=110, show_result=0)
-
+input_data = IG.generate_aircraft(sample_size=50, show_result=0)
 
 
 # [1] Objective function coefficients & Weights
-coefficients = CC.coefficient_calculator(input_data)
+coefficients = CoC.coefficient_calculator(input_data)
 flight_var_indices = [x for x in coefficients]
 
 

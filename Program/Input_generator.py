@@ -96,6 +96,7 @@ def generate_aircraft(sample_size=10, every_n_minutes=12, show_result=0):
 
     # Other variables
     move_types = ['Arr', 'Park', 'Dep']
+    tomorrow_midnight = pd.to_datetime('today') + datetime.timedelta(days=1)
     
     # Generating data
     count = 0
@@ -115,7 +116,7 @@ def generate_aircraft(sample_size=10, every_n_minutes=12, show_result=0):
 
         # Flight Number
         ref_number = np.random.randint(100, 999)
-        flight_number_in = Airline + str(ref_number)
+        flight_number_in  = Airline + str(ref_number)
         flight_number_out = Airline + str(ref_number + np.random.choice([-1, 1], p=[0.5, 0.5]))
         
         # Computing time of departure
@@ -126,16 +127,14 @@ def generate_aircraft(sample_size=10, every_n_minutes=12, show_result=0):
         Night_stay = AC_ATA.date() < AC_ATD.date()
 
         # Adapting flight departure time if between midnight and 6AM
-        tomorrow_midnight = pd.to_datetime('today') + datetime.timedelta(days=1)
-        if Night_stay and ( (AC_ATD - tomorrow_midnight) < datetime.timedelta(hours=5, minutes=59) ):
-            
+        if Night_stay and (AC_ATD > tomorrow_midnight) and ( (AC_ATD - tomorrow_midnight) < datetime.timedelta(hours=5, minutes=59) ):
+
             #Midnight + 6h + random extra time (normal distributed) #datetime.timedleta(days=1) 
             AC_ATD = tomorrow_midnight            + \
                      datetime.timedelta(hours=6)  + \
                      np.random.choice(time_deltas , p = night_probs)
             
             AC_STAY = AC_ATD - AC_ATA
-
 
 
         # If the stay is longer than 5h40 => long stay (a.ka. splitTED flight)
@@ -185,7 +184,7 @@ def generate_aircraft(sample_size=10, every_n_minutes=12, show_result=0):
     #Showing generated input to user
     if show_result:
         print ('GENERATED INPUT:')
-        inputs_dataframe = inputs_list2dataframe(generated_input_data)
+        inputs_dataframe = CONV.inputs_list2dataframe(generated_input_data)
         print (inputs_dataframe, '\n')
 
 
@@ -193,23 +192,5 @@ def generate_aircraft(sample_size=10, every_n_minutes=12, show_result=0):
 
 
 
-# Function to convert input_data variable from list to pandas dataframe
-def inputs_list2dataframe(input_data):
 
-    input_dataframe = pd.DataFrame.from_records(input_data)
-    input_dataframe['ata'] = input_dataframe['ata'].dt.strftime('%H:%M (%d/%m)')
-    input_dataframe['atd'] = input_dataframe['atd'].dt.strftime('%H:%M (%d/%m)')
-    input_dataframe = input_dataframe[['flight index'    ,
-                                       'airline'         ,
-                                       'move type'       ,
-                                       'Fl No. Arrival'  ,
-                                       'ata'             ,
-                                       'Fl No. Departure',
-                                       'atd'             ,
-                                       'long stay'       ,
-                                       'night stay'      ,
-                                       'connection'      ,
-                                       'ac type'         ]]
-    
-    return input_dataframe
 
