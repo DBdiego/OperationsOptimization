@@ -14,7 +14,7 @@ group2bay_compliance = DI.group2bay_compliance
 bay_distances        = DI.bay_distances
 preferences          = DI.preferences
 
-def coefficient_calculator(input_data):
+def coefficient_calculator(input_data, fb = 1):
 
     # Creating Variables
     coefficients = {}
@@ -27,9 +27,9 @@ def coefficient_calculator(input_data):
     z2_coefficients = np.zeros(max_possibilities)
     
 
-
-    print ('Generating Coefficients & Weights: ...')
-    start_time = time.time()
+    if fb:
+        print ('Generating Coefficients & Weights: ...')
+        start_time = time.time()
 
 
     # Determining coefficients of decision variables
@@ -107,13 +107,13 @@ def coefficient_calculator(input_data):
 
 
     #Combingin both objective functions
-    final_coefficients = alpha * (-1* z1_coefficients) +\
-                         beta  *      z2_coefficients
+    #final_coefficients = alpha * (-1* z1_coefficients) +\
+    #                     beta  *      z2_coefficients
 
-
-    print ('Generating Coefficients & Weights: DONE (' + str(round(time.time()-start_time, 3)) +' seconds)\n')
+    if fb:
+        print ('Generating Coefficients & Weights: DONE (' + str(round(time.time()-start_time, 3)) +' seconds)\n')
     
-    return coefficients #, final_coefficients, [z1_coefficients, z2_coefficients], coefficients
+    return coefficients
 
 
 

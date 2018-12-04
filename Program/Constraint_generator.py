@@ -18,11 +18,13 @@ all_bays = np.array(group2bay_compliance['Bay'])
 
 
 # [1] BAY COMPLIANCE Constraint
-def add_bay_compliance(input_data, Bay_Assignment, flight_vars):
-    
-    print ('  ---> Adding Bay Compliance Constraints ...')
+def add_bay_compliance(input_data, Bay_Assignment, flight_vars, fb=0):
+
+    if fb:
+        print ('  ---> Adding Bay Compliance Constraints ...')
     
     constraint_collection = {}
+    number_constraints = 0
     
     #Going Through all flights
     for i, flight in enumerate(input_data):
@@ -40,20 +42,29 @@ def add_bay_compliance(input_data, Bay_Assignment, flight_vars):
             constraint.update({constraint_variable:1})
             constraint_vars.append(constraint_variable)
             
+            
         constraint_collection.update({'BC'+str(i):{'constraint':constraint,
                                                    'variables' :constraint_vars}})
+        
         Bay_Assignment += pulp.lpSum([constraint[i]*flight_vars[i] for i in constraint_vars]) == 1, 'BC'+str(i)
+        
+        number_constraints += 1
 
-    return Bay_Assignment, constraint_collection
+    if fb:
+        print ('       Added '+str(number_constraints)+'\n')
+
+    return Bay_Assignment, constraint_collection, number_constraints
 
 
 
 
 # [2] TIME Constraint
-def add_time_constraint(input_data, Bay_Assignment, flight_vars):
-    
-    print ('  ---> Adding Time Constraints ...')
+def add_time_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
 
+    if fb:
+        print ('  ---> Adding Time Constraints ...')
+    number_constraints = 0
+    
     #Creation of matrix
     time_conflict_matrix = np.zeros((len(input_data), len(input_data)))
 
@@ -71,7 +82,7 @@ def add_time_constraint(input_data, Bay_Assignment, flight_vars):
             if (i < j):
                 
                 # if comparator arrival is within the stay of the subject flight
-                if subject_arrival < comparator_data['ata'] < subject_departure:
+                if (subject_arrival <= comparator_data['atd']) and (subject_departure >= comparator_data['ata']):
 
                     time_conflict_matrix[i,j] = 1
                     time_conflict_matrix[j,i] = 1 #Not sure how usefull this is...
@@ -96,7 +107,12 @@ def add_time_constraint(input_data, Bay_Assignment, flight_vars):
                             
                             Bay_Assignment += pulp.lpSum([constraint_coef[i]*flight_vars[i] for i in constraint_vars]) <= 1, constraint_name
 
-    return Bay_Assignment, time_conflict_matrix
+                            number_constraints += 1
+
+    if fb:                            
+        print ('       Added '+str(number_constraints)+'\n')
+                            
+    return Bay_Assignment, time_conflict_matrix,number_constraints
 
 
 
@@ -104,9 +120,12 @@ def add_time_constraint(input_data, Bay_Assignment, flight_vars):
 
 # [3] FUEL CONSTRAINT
 #    Non serviceable bays : J7, J8, J9 and the STPV bays (STPV1/2)
-def add_fuelling_constraint(input_data, Bay_Assignment, flight_vars):
-    print('  ---> Adding Fuelling Constraints ...')
+def add_fuelling_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
 
+    if fb:
+        print('  ---> Adding Fuelling Constraints ...')
+
+    number_constraints = 0
     constraint_collection = {}
 
     # Going Through all flights
@@ -144,6 +163,8 @@ def add_fuelling_constraint(input_data, Bay_Assignment, flight_vars):
                                                           'variables': constraint_vars}})
             Bay_Assignment += pulp.lpSum([constraint[i] * flight_vars[i] for i in constraint_vars]) == 1, 'F' + str(i)
 
+            number_constraints += 1
+
         # Flight is in long stay (Just domestic during parking or departure phase)
         #   resulting in: (long_stay == 1 and domestic==1 and move_type=='Park') or ... ejected because we use i-1 in constraint
         if (long_stay == 1 and domestic==1 and move_type=='Dep'): 
@@ -163,17 +184,24 @@ def add_fuelling_constraint(input_data, Bay_Assignment, flight_vars):
                                                           'variables': constraint_vars}})
             Bay_Assignment += pulp.lpSum([constraint[i] * flight_vars[i] for i in constraint_vars]) >= 1, 'F' + str(i)
 
+            number_constraints += 1
 
-    return Bay_Assignment, constraint_collection
+    if fb:
+        print ('       Added '+str(number_constraints)+'\n')
+
+    return Bay_Assignment, constraint_collection, number_constraints
 
 
 
 
 # [4] SPLIT(TED) FLIGHT CONSTRAINT
-def add_split_constraint(input_data, Bay_Assignment, flight_vars):
+def add_split_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
 
-    print ('  ---> Adding Split Flight Constraints ...')
-
+    if fb:
+        print ('  ---> Adding Split Flight Constraints ...')
+    
+    number_constraints = 0
+    
     i = 0
     while i < len(input_data):
 
@@ -220,24 +248,32 @@ def add_split_constraint(input_data, Bay_Assignment, flight_vars):
 
             Bay_Assignment += pulp.lpSum([constraint_1[l] * flight_vars[l] for l in constraint_vars_1]) == 0, 'SPF' + str(i  ) + 'B' + str(k) 
             Bay_Assignment += pulp.lpSum([constraint_2[l] * flight_vars[l] for l in constraint_vars_2]) == 0, 'SPF' + str(i+1) + 'B' + str(k)
+
+            number_constraints += 2
             
             i += 2 # To skip 'Park' & 'Dep'
         i += 1
 
-    return Bay_Assignment
+    if fb:
+        print ('       Added '+str(number_constraints)+'\n')
+
+    return Bay_Assignment, number_constraints
 
 
 
 
-# [5] ADJANCY CONSTRAINT
-def add_adjancy_constraint(input_data, Bay_Assignment, flight_vars):
-    print ('  ---> Adding Adjancy Constraints ...')
+# [5] ADJACENCY CONSTRAINT
+def add_adjancy_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
+
+    if fb:
+        print ('  ---> Adding Adjancy Constraints ...')
 
         
     time_departure_overlap    = np.zeros((len(input_data), len(input_data)))
     time_overlap_adjacent_bay = np.zeros((len(input_data), len(input_data)))
 
-
+    number_constraints = 0
+    
     # Find overlap in departure time between flights and note these flights
     for i in range(len(input_data)):
 
@@ -246,7 +282,8 @@ def add_adjancy_constraint(input_data, Bay_Assignment, flight_vars):
             flight_departure = flight_data['atd']
             flight_arrival   = flight_data['ata']
             flight_type      = flight_data['move type']
-        
+
+            
             
             #check if the flight in question is departing or short stay
             if flight_type =='Full' or flight_type == 'Dep':
@@ -297,8 +334,12 @@ def add_adjancy_constraint(input_data, Bay_Assignment, flight_vars):
                             
                             Bay_Assignment += pulp.lpSum([constraint2[k]*flight_vars[k] for k in constraint_vars2]) <= 1, 'ADJ56I'+str(i)+'O'+str(j)
 
+                            number_constraints += 2
 
-    return Bay_Assignment
+    if fb:
+        print ('       Added '+str(number_constraints)+'\n')
+    
+    return Bay_Assignment, number_constraints
 
 
 
