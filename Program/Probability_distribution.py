@@ -50,7 +50,7 @@ AC_count.columns = ['AC Type', 'Count']
 AC_count['Probs'] = AC_count['Count']/sum(list(AC_count['Count']))
 AC_probs = AC_count[['AC Type', 'Probs']]
 
-AC_probs.to_csv('../csv_data_appendices/input_distributions/AC_type_distribution.csv')
+AC_probs.to_csv('../csv_data_appendices/input_distributions/AC_type_distribution.csv', sep=',', index=False)
 
 
 
@@ -62,7 +62,10 @@ AL_count.columns = ['AL Code', 'Count']
 AL_count['Probs'] = AL_count['Count']/sum(list(AL_count['Count']))
 AL_probs = AL_count[['AL Code', 'Probs']]
 
-AL_probs.to_csv('../csv_data_appendices/input_distributions/AL_code_distribution.csv')
+AL_probs.to_csv('../csv_data_appendices/input_distributions/AL_code_distribution.csv', sep=',', index=False)
+
+
+
 
 
 # DOMESTIC - INTERNATIONAL PROBABILITIES
@@ -120,7 +123,10 @@ AL_DOM_INT['dom_probs'] = AL_DOM_INT['dom_count']/AL_DOM_INT['total']
 AL_DOM_INT['int_probs'] = AL_DOM_INT['int_count']/AL_DOM_INT['total']
 
 AL_probs_dom_int = AL_DOM_INT[['airline', 'dom_probs', 'int_probs']]
-AL_probs_dom_int.to_csv('../csv_data_appendices/input_distributions/Al_domestic_international.csv')
+AL_probs_dom_int.to_csv('../csv_data_appendices/input_distributions/Al_domestic_international.csv', sep=',', index=False)
+
+
+
 
 
 
@@ -131,22 +137,25 @@ def create_time_array(every_n_minutes):
     num_min_interv  = int(60/every_n_minutes)
     for hour in range(num_hour_interv):
         for minute in range(num_min_interv):
-            time = datetime.datetime.today().replace(hour=hour, minute=minute*every_n_minutes, second=0, microsecond=0)#.strftime('%H:%M')
+            time = datetime.datetime.today().replace(hour=hour, minute=minute*every_n_minutes, second=0, microsecond=0)
             time_array.append(time)
 
     return np.array(time_array)
 
 def create_stays_array(every_n_minutes, aircraft_data):
-    stay_array = np.arange(0, max(aircraft_stay)+every_n_minutes*60, every_n_minutes*60)
-    return stay_array
+    stay_timedeltas = []
+    stay_array = np.arange(0, (1440+every_n_minutes)*60, every_n_minutes*60)
+    for stay_int in stay_array:
+        stay_timedeltas.append(datetime.timedelta(seconds=float(stay_int)))
+    return stay_timedeltas
         
 
 def sampler(sample_mold, to_be_sampeled):
     count = np.zeros(len(sample_mold))
     for i, sample in enumerate(to_be_sampeled):
         for j in range(1, len(sample_mold)):
-            if sample_mold[j-1] <= sample < sample_mold[j]:
-                count[j-1] += 1
+            if sample_mold[j-1] < sample <= sample_mold[j]:
+                count[j] += 1
   
     return count
 
@@ -155,33 +164,42 @@ def sampler(sample_mold, to_be_sampeled):
 arrival_times   = []
 departure_times = []
 flight_numbers  = list(imported_data['Fl No. Arrival'].unique())
+
 for i, flight_number in enumerate(flight_numbers):
     
     flight_data = imported_data[imported_data['Fl No. Arrival'] == flight_number]
     
     if len(flight_data) == 1:
-        arrival_times  .append(list(pd.to_datetime(flight_data['ATA']))[0])
-        departure_times.append(list(pd.to_datetime(flight_data['ATD']))[0])
+        ata = list(pd.to_datetime(flight_data['ATA']))[0]
+        atd = list(pd.to_datetime(flight_data['ATD']))[0]
         
     elif len(flight_data) > 1:
-        arrival_times  .append(list(pd.to_datetime(flight_data[flight_data['Flight Type']=='Arr']['ATA']))[0])
-        departure_times.append(list(pd.to_datetime(flight_data[flight_data['Flight Type']=='Dep']['ATD']))[0])
+        ata = list(pd.to_datetime(flight_data[flight_data['Flight Type']=='Arr']['ATA']))[0]
+        atd = list(pd.to_datetime(flight_data[flight_data['Flight Type']=='Dep']['ATD']))[0]
+
+    if atd < ata:
+        atd = atd + datetime.timedelta(days=1)
+
+    arrival_times  .append(ata)
+    departure_times.append(atd)
+
+
         
     
 
 aircraft_stay = []
 count = 0
 for i in range(len(arrival_times)):
+    duration = departure_times[i] - arrival_times[i]
     
-    if departure_times[i] > arrival_times[i]:
-        duration = departure_times[i] - arrival_times[i]        
-    else:
-        duration = arrival_times[i] - departure_times[i]
-        
+    if duration < datetime.timedelta(hours=1):
+        duration = datetime.timedelta(hours=1, minutes=np.random.randint(15))
     if duration > datetime.timedelta(hours=5, minutes=40):
         count += 1
+    
 
-    aircraft_stay.append(duration.total_seconds())
+    aircraft_stay.append(duration)
+
 print (round(100*count/len(arrival_times), 2), '% of flights are "long stay" flights')
 
 
@@ -191,27 +209,24 @@ for every_n_minutes in [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30]:
     # Generating Sampling 'molds' (in which data is classified/sampled)
     times = create_time_array (every_n_minutes)
     stays = create_stays_array(every_n_minutes, aircraft_stay)
-
+    
     # Sampling the imported data
     number_arrivals   = sampler(times, arrival_times   )
     number_departures = sampler(times, departure_times )
     number_duration   = sampler(stays, aircraft_stay   )
-
-    stays = [datetime.timedelta(seconds=x) for x in stays]
-
 
     #Generating Arrival Time Probabilities
     Arrival_count = pd.DataFrame(np.column_stack((times, number_arrivals)))
     Arrival_count.columns=['Time', 'Count']
     Arrival_count['Probs'] = Arrival_count['Count']/sum(list(Arrival_count['Count']))
     Arrival_count['Time'] = Arrival_count['Time'] - pd.to_datetime('today')
-    Arrival_count[['Time', 'Probs']].to_csv('../csv_data_appendices/input_distributions/Arrival_sampling_'+str(every_n_minutes)+'.csv', sep=',')
+    Arrival_count[['Time', 'Probs']].to_csv('../csv_data_appendices/input_distributions/Arrival_sampling_'+str(every_n_minutes)+'.csv', sep=',', index=False)
 
     #Generating Duration on tarmac Probabilities
     Duration = pd.DataFrame(np.column_stack((stays, number_duration)))
     Duration.columns=['Time', 'Count']
     Duration['Probs'] = Duration['Count']/sum(list(Duration['Count']))
-    Duration[['Time', 'Probs']].to_csv('../csv_data_appendices/input_distributions/Duration_sampling_'+str(every_n_minutes)+'.csv', sep=',')
+    Duration[['Time', 'Probs']].to_csv('../csv_data_appendices/input_distributions/Duration_sampling_'+str(every_n_minutes)+'.csv', sep=',', index=False)
 
     
     plots_wanted = 0

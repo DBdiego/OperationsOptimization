@@ -172,13 +172,13 @@ def generate_aircraft(use_existing, sample_size=10, every_n_minutes=12, show_res
             if Long_stay:
                 count += 1
                 
-                time_arrival_procedure   = 90 # [minutes]
-                time_departure_procedure = 90 # [minutes]
+                time_arrival_procedure   = np.random.randint(30, 90) # [minutes]
+                time_departure_procedure = np.random.randint(30, 90) # [minutes]
 
-                time_intervals = {move_types[0]:[AC_ATA, AC_ATA + datetime.timedelta(minutes=90)],
-                                  move_types[1]:[AC_ATA + datetime.timedelta(minutes=90),
-                                                 AC_ATD - datetime.timedelta(minutes=90)],
-                                  move_types[2]:[AC_ATD - datetime.timedelta(minutes=90), AC_ATD]}
+                time_intervals = {move_types[0]:[AC_ATA, AC_ATA + datetime.timedelta(minutes=time_arrival_procedure)],
+                                  move_types[1]:[AC_ATA + datetime.timedelta(minutes=time_arrival_procedure  ),
+                                                 AC_ATD - datetime.timedelta(minutes=time_departure_procedure)],
+                                  move_types[2]:[AC_ATD - datetime.timedelta(minutes=time_departure_procedure), AC_ATD]}
                 
                 for move_type in move_types:
                     generated_input_data.append({'flight index': i            ,

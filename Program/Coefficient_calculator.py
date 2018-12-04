@@ -79,14 +79,17 @@ def coefficient_calculator(input_data, fb = 1):
             # Calculating the weights
             max_distance_bay = max( list(bay_distances.loc[bay_distances['Bay'].isin([bay])].iloc[0, 1:]) )
             alpha = 1
-            beta  = aircraft_capacity * distance #max_distance_bay
+            beta  = aircraft_capacity * max_distance_bay
             gamma = 3 * beta     #max_distance_bay
 
 
             # Compute coefficient of first objective function
             z1_coefficients[gobal_index] = aircraft_capacity * distance
-            
-            coefficient = (aircraft_capacity * distance)*(-1) * alpha
+
+            if flight_data['move type']=='Park':
+                coefficient = 0
+            else:
+                coefficient = (aircraft_capacity * distance)*(-1) * alpha
 
             # Coefficient of second objective function
             if j in preference_bays:

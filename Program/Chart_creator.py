@@ -211,15 +211,21 @@ def gant_chart_bays(input_data, chart_title, show=0, save=1):
         ax.set_yticks(range(1, len(all_bays)+1))
         ax.set_yticklabels(all_bays, fontsize=10)
         
-        ax.set_ylabel('Flight Numbers')
+        ax.set_ylabel('Bays')
         ax.set_xlabel('Time')
 
         ax.set_xlim([midnight_today, max_atd + datetime.timedelta(minutes=45)])
 
         #Legend
-        short_stay_line = mlines.Line2D([],[], color='b', label='short stay')
-        long_stay_line  = mlines.Line2D([],[], color='r', label='long stay' )
-        ax.legend(handles=[short_stay_line, long_stay_line],loc='lower left')
+        full_stay_line = mlines.Line2D([],[], color='black', label='Full stay')
+        arr_stay_line  = mlines.Line2D([],[], color='blue' , label='Arrival stay')
+        park_stay_line = mlines.Line2D([],[], color='green', label='Parking stay')
+        dep_stay_line  = mlines.Line2D([],[], color='red'  , label='Departure stay' )
+        
+        ax.legend(handles=[full_stay_line,
+                           arr_stay_line ,
+                           park_stay_line,
+                           dep_stay_line ],loc='lower left')
 
         #Remove useless part of the box
         ax.spines[  'top'].set_visible(False)
