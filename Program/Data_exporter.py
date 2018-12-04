@@ -23,7 +23,9 @@ def save_data(input_data, Bay_Assignement):
     # Converting input_data from list to dataframe (for later)
     input_dataframe  = CONV.inputs_list2dataframe(input_data)
     output_dataframe = input_dataframe
-    
+
+    # Exporting inputs to a csv file (for eventual later use)
+    input_dataframe.to_csv('./outputs/Generated Inputs.csv')
 
     # Adding assigned bay to flights
     bay_assignment = list(np.zeros(len(input_data)))
