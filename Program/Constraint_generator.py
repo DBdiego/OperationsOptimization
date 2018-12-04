@@ -14,7 +14,7 @@ import Data_importer as DI
 aircraft_type2characteristics = DI.aircraft_type2characteristics
 group2bay_compliance = DI.group2bay_compliance
 
-all_bays = np.array(group2bay_compliance['Bay'])
+all_bays = DI.all_bays
 
 
 # [1] BAY COMPLIANCE Constraint

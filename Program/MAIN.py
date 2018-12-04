@@ -20,11 +20,8 @@ import Converters as CONV
 
 USE_PREGENERATED_DATA = 0 # Use existing file as input
 
-times = []
-
-
 # [0] Generate Input Data
-input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=20, show_result=0)
+input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=40, show_result=0)
 
 
 # [1] Objective function coefficients & Weights

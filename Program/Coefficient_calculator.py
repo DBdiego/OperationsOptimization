@@ -19,7 +19,7 @@ def coefficient_calculator(input_data, fb = 1):
     # Creating Variables
     coefficients = {}
 
-    all_bays = np.array(list(group2bay_compliance['Bay']))
+    all_bays = DI.all_bays
     
     # Creating arrays for coefficients of the 2 objective functions
     max_possibilities = len(input_data)*len(all_bays)
@@ -79,7 +79,7 @@ def coefficient_calculator(input_data, fb = 1):
             # Calculating the weights
             max_distance_bay = max( list(bay_distances.loc[bay_distances['Bay'].isin([bay])].iloc[0, 1:]) )
             alpha = 1
-            beta  = max_distance_bay * aircraft_capacity        #max_distance_bay
+            beta  = aircraft_capacity * distance #max_distance_bay
             gamma = 3 * beta     #max_distance_bay
 
 
