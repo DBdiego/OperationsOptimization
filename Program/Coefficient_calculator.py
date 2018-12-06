@@ -58,18 +58,9 @@ def coefficient_calculator(input_data, fb = 1):
             preference_bays = []
 
         # Determining the reference point of the flight
-        if flight_data['connection'] == 'Dom':
-            terminal_distances = bay_distances[['Bay', 'A']]
+        terminal_distances = bay_distances[['Bay', flight_data['terminal']]]
             
-        elif flight_data['airline'] == 'KQ':
-            terminal_distances = bay_distances[['Bay', 'D']]
-            
-        else:
-            terminal_choice = np.random.choice(['B', 'C'], p=[0.5, 0.5])
-            terminal_distances = bay_distances[['Bay', terminal_choice]]
-
-            
-         # Loop over all possible bays
+        # Loop over all possible bays
         for j, bay in enumerate(all_bays):
             
 
@@ -80,32 +71,50 @@ def coefficient_calculator(input_data, fb = 1):
             max_distance_bay = max( list(bay_distances.loc[bay_distances['Bay'].isin([bay])].iloc[0, 1:]) )
             alpha = 1
             beta  = aircraft_capacity * max_distance_bay
-            gamma = 3 * beta     #max_distance_bay
+            gamma = 1e9 #3 * beta     #max_distance_bay
 
 
             # Compute coefficient of first objective function
             z1_coefficients[gobal_index] = aircraft_capacity * distance
 
             if flight_data['move type']=='Park':
-                coefficient = 0
+                coefficient = (aircraft_capacity * distance)*(-1) * alpha #0
             else:
                 coefficient = (aircraft_capacity * distance)*(-1) * alpha
 
             # Coefficient of second objective function
             if j in preference_bays:
                 z2_coefficients[gobal_index] = 1
-                coefficient += 1 * beta
+                coefficient += 0 * beta
             else:
                 z2_coefficients[gobal_index] = 0
                 coefficient += 0 * beta
 
+
+
+
             # Assigning Coefficient to a decision variable name
-            coefficients.update({'x_' + str(i) + '_' + bay : coefficient ,
-                                 'u_' + str(i) + '_' + bay : -gamma      ,
-                                 'v_' + str(i) + '_' + bay : -gamma      ,
-                                 'w_' + str(i) + '_' + bay : -gamma      })
-            
-            
+            if flight_data['move type'] == 'Arr':
+                coefficients.update({'x_' + str(i) + '_' + bay : coefficient ,
+                                     'v_' + str(i) + '_' + bay : -gamma      ,
+                                     'w_' + str(i+1) + '_' + bay : -gamma      })
+
+
+            elif flight_data['move type'] == 'Park':
+                #print('v_' + str(i) + '_' + bay)
+                coefficients.update({'x_' + str(i) + '_' + bay : coefficient ,
+                                     'v_' + str(i) + '_' + bay : -gamma      ,
+                                     'w_' + str(i+1) + '_' + bay : -gamma      })
+
+
+            elif flight_data['move type'] == 'Dep':
+                coefficients.update({'x_' + str(i) + '_' + bay : coefficient })
+                                     #'w_' + str(i) + '_' + bay : -gamma      })
+                                
+            else:
+                
+                coefficients.update({'x_' + str(i) + '_' + bay : coefficient })
+
             gobal_index += 1
 
 

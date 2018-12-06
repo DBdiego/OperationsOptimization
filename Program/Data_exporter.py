@@ -16,7 +16,7 @@ import Converters as CONV
 
 
 
-def save_data(input_data, Bay_Assignement):
+def save_data(input_data, Bay_Assignment):
     print ('Exporting data to Excel: ...')
     start_time_export = time.time()
 
@@ -27,60 +27,74 @@ def save_data(input_data, Bay_Assignement):
     # Exporting inputs to a csv file (for eventual later use)
     input_dataframe.to_csv('./outputs/Generated Inputs.csv')
 
-    # Adding assigned bay to flights
-    bay_assignment = list(np.zeros(len(input_data)))
-    
-    for decision_variable in Bay_Assignement.variables():
-        if int(decision_variable.varValue) and decision_variable.name.find('x') != -1:
+    if pulp.LpStatus[Bay_Assignment.status] != 'Infeasible':
+        # Adding assigned bay to flights
+        bay_assignment = list(np.zeros(len(input_data)))
+        
+        for decision_variable in Bay_Assignment.variables():
+            if int(decision_variable.varValue) and decision_variable.name.find('x') != -1:
+                
+                dv, var_type, flight_index, bay = decision_variable.name.split('_')
+                bay_assignment[int(flight_index)] = bay
+
+            if (decision_variable.name.find('v') != -1 or  decision_variable.name.find('w')!= -1 or  decision_variable.name.find('u')!= -1) and int(decision_variable.varValue):
+                #print(decision_variable.name, decision_variable.varValue)
+                pass
+
+
+        output_dataframe['Bay'] = bay_assignment
+
+        # Checking for towings:
+        long_stays = output_dataframe[output_dataframe['long stay']]
+
+        arrivals   = long_stays[long_stays['move type'] == 'Arr' ].reset_index()
+        parkings   = long_stays[long_stays['move type'] == 'Park'].reset_index()
+        departures = long_stays[long_stays['move type'] == 'Dep' ].reset_index()
+
+
+
+        towings_ = []  
+        for i in range(len(list(arrivals['Bay']))):
+            towing_arr_park = 'NO'
+            towing_park_dep = 'NO'
             
-            dv, var_type, flight_index, bay = decision_variable.name.split('_')
-            bay_assignment[int(flight_index)] = bay
+            if arrivals['Bay'].iloc[i] != parkings['Bay'].iloc[i]:
+                towing_arr_park = 'YES'
+            
+            if parkings['Bay'].iloc[i] != departures['Bay'].iloc[i]:
+                towing_park_dep = 'YES'
+
+            towings_.append({'Fl No. Arrival' : arrivals['Fl No. Arrival'].iloc[i],
+                             'Arrival Bay'    : arrivals  ['Bay'].iloc[i]         ,
+                             'Park Bay'       : parkings  ['Bay'].iloc[i]         ,
+                             'Departure Bay'  : departures['Bay'].iloc[i]         ,
+                             'Arr -> Park'    : towing_arr_park                   , 
+                             'Park -> Dep'    : towing_park_dep
+                            })
 
 
-    output_dataframe['Bay'] = bay_assignment
-
-    # Checking for towings:
-    long_stays = output_dataframe[output_dataframe['long stay']]
-
-    arrivals   = long_stays[long_stays['move type'] == 'Arr' ].reset_index()
-    parkings   = long_stays[long_stays['move type'] == 'Park'].reset_index()
-    departures = long_stays[long_stays['move type'] == 'Dep' ].reset_index()
-
-
-
-    towings_ = []  
-    for i in range(len(list(arrivals['Bay']))):
-        towing_arr_park = 'NO'
-        towing_park_dep = 'NO'
+        #print (towings)
         
-        if arrivals['Bay'].iloc[i] != parkings['Bay'].iloc[i]:
-            towing_arr_park = 'YES'
-        
-        if parkings['Bay'].iloc[i] != departures['Bay'].iloc[i]:
-            towing_park_dep = 'YES'
+        towings_dataframe = pd.DataFrame.from_records(towings_)
+        if len(towings_dataframe) > 0:
+            towings_dataframe = towings_dataframe[['Fl No. Arrival'  ,
+                                                   'Arrival Bay'     ,
+                                                   'Park Bay'        ,
+                                                   'Departure Bay'   ,
+                                                   'Arr -> Park'     ,
+                                                   'Park -> Dep'     ]]
+        else:
+            towings_dataframe[['Fl No. Arrival'  ,
+                               'Arrival Bay'     ,
+                               'Park Bay'        ,
+                               'Departure Bay'   ,
+                               'Arr -> Park'     ,
+                               'Park -> Dep'     ]] = [0,0,0,0,0,0]
 
-        towings_.append({'Fl No. Arrival' : arrivals['Fl No. Arrival'].iloc[i],
-                         'Arrival Bay'    : arrivals  ['Bay'].iloc[i]         ,
-                         'Park Bay'       : parkings  ['Bay'].iloc[i]         ,
-                         'Departure Bay'  : departures['Bay'].iloc[i]         ,
-                         'Arr -> Park'    : towing_arr_park                   , 
-                         'Park -> Dep'    : towing_park_dep
-                        })
+        # Exporting all data to excel
+        export_2_excel(input_dataframe, output_dataframe, towings_dataframe)
 
-
-    #print (towings)
-    towings_dataframe = pd.DataFrame.from_records(towings_)
-    towings_dataframe = towings_dataframe[['Fl No. Arrival'  ,
-                                           'Arrival Bay'     ,
-                                           'Park Bay'        ,
-                                           'Departure Bay'   ,
-                                           'Arr -> Park'     ,
-                                           'Park -> Dep'     ]]
-
-    # Exporting all data to excel
-    export_2_excel(input_dataframe, output_dataframe, towings_dataframe)
-
-    print ('Exporting data to Excel: DONE (' + str(round(time.time()-start_time_export, 3)) +' seconds)\n')
+        print ('Exporting data to Excel: DONE (' + str(round(time.time()-start_time_export, 3)) +' seconds)\n')
 
 
 
@@ -88,7 +102,7 @@ def save_data(input_data, Bay_Assignement):
     print ('Generating charts: ...')
     start_time_charts = time.time()
 
-    ChC.generate_charts(input_dataframe, output_dataframe, towings_dataframe)
+    ChC.generate_charts(input_dataframe, output_dataframe, towings_dataframe, Bay_Assignment)
     
     print ('Generating charts: DONE (' + str(round(time.time()-start_time_charts, 3)) +' seconds)\n')
     

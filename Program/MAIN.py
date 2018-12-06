@@ -31,7 +31,7 @@ flight_var_indices = [x for x in coefficients]
 
 
 # [2] Definition of initial problem
-Bay_Assignment = pulp.LpProblem('Bay Assignment', pulp.LpMaximize)
+Bay_Assignment = pulp.LpProblem('Bay Assignment', pulp.LpMaximize) #pulp.LpMinimize)
 
 
 
@@ -50,19 +50,25 @@ print ('Adding Constraints: ...')
 start_constraints = time.time()
 
 # --> Bay Compliance
+num_BC = 0
 Bay_Assignment, bay_constraints , num_BC = CONSTR.add_bay_compliance(input_data, Bay_Assignment, flight_vars, fb=1)
 
 # --> Time Constraint
+num_T = 0
 Bay_Assignment, time_conflicts  , num_T = CONSTR.add_time_constraint(input_data, Bay_Assignment, flight_vars, fb=1)
 
 # --> Fuel Constraint
+num_F= 0
 Bay_Assignment, fuel_constraints, num_F = CONSTR.add_fuelling_constraint(input_data, Bay_Assignment, flight_vars, fb=1)
 
 # --> Adjacency Constraint
+num_A = 0
 Bay_Assignement, num_A = CONSTR.add_adjancy_constraint(input_data, Bay_Assignment, flight_vars, fb=1)
 
 # --> Night Stay Constraint
+num_NS = 0
 Bay_Assignement, num_NS = CONSTR.add_split_constraint(input_data, Bay_Assignment, flight_vars, fb=1)
+#Bay_Assignement, num_NS = CONSTR.add_split_constraint2(input_data, Bay_Assignment, flight_vars, fb=1)
 
 print ('Adding Constraints: DONE ('+str(round(time.time() - start_constraints, 3))+' seconds)\n')
 
@@ -85,6 +91,7 @@ print('Solving the problem: DONE ('+str(round(time.time() - start_solve, 3))+' s
 # [8] Displaying solved problem solution to user
 print ('======= - STATUS - ======= ')
 print ('Objective: Maximize Z'      )
+print (str(len(flight_var_indices)) + ' Decision variables')
 print (str(sum([num_BC, num_T, num_F, num_A, num_NS]))+' Constraints: ')
 print ('  |--> Time           : ' + str(num_T ))
 print ('  |--> Fuelling       : ' + str(num_F ))
@@ -97,8 +104,7 @@ print ('========================== \n\n')
 
 
 # [9] Saving Overview of problem solution
-output_dataframe = DE.save_data(input_data, Bay_Assignement)
-
-
+if str(pulp.LpStatus[Bay_Assignment.status]) != 'Infeasible':
+    output_dataframe = DE.save_data(input_data, Bay_Assignement)
 
 

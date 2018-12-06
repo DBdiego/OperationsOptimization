@@ -27,7 +27,7 @@ more info)
 '''
 
 
-def generate_aircraft(use_existing, sample_size=10, every_n_minutes=12, show_result=0):
+def generate_aircraft(use_existing, sample_size=10, every_n_minutes=5, show_result=0):
 
     # Inputs:
     #   use_existing    : Is a boolean telling the program to import an existing file or generating new data
@@ -140,6 +140,14 @@ def generate_aircraft(use_existing, sample_size=10, every_n_minutes=12, show_res
             connection_probs = [AL_connection_distr[Airline]['dom_probs'],
                                 AL_connection_distr[Airline]['int_probs']]
             AL_connection = np.random.choice(['DOM', 'INT'], p = connection_probs)
+            if Airline =='KQ':
+                if AL_connection =='DOM':
+                    terminal_ref = 'A'
+                else:
+                    terminal_ref = 'D'
+            else:
+                terminal_ref = np.random.choice(['B', 'C'], p=[0.5, 0.5])
+                
 
             # Flight Number
             ref_number = np.random.randint(100, 999)
@@ -192,6 +200,7 @@ def generate_aircraft(use_existing, sample_size=10, every_n_minutes=12, show_res
                                                  'connection'  : AL_connection, 
                                                  'Fl No. Arrival'  :flight_number_in  ,
                                                  'Fl No. Departure':flight_number_out ,
+                                                 'terminal'    : terminal_ref
                                                  })
                 
             else:
@@ -205,7 +214,8 @@ def generate_aircraft(use_existing, sample_size=10, every_n_minutes=12, show_res
                                              'night stay'  : Night_stay   ,
                                              'connection'  : AL_connection, 
                                              'Fl No. Arrival'  :flight_number_in   ,
-                                             'Fl No. Departure':flight_number_out   ,
+                                             'Fl No. Departure':flight_number_out  ,
+                                             'terminal'    : terminal_ref
                                              })
 
     #Showing generated input to user

@@ -4,6 +4,7 @@ import pandas as pd
 import numpy as np
 import time
 import datetime
+import pulp
 
 # --> Module classes
 import matplotlib.dates  as mdates
@@ -18,13 +19,16 @@ import Converters as CONV
 all_bays = list(DI.all_bays)[::-1]
 midnight_today = pd.to_datetime('today').replace(hour=0, minute=0, second=0, microsecond=0)
 
-def generate_charts(input_dataframe, output_dataframe, towings_dataframe):
+def generate_charts(input_dataframe, output_dataframe, towings_dataframe, Bay_Assignment):
+
+    
 
     #Ground Times of aircraft
     ground_time_ranges = assign_time_data2FN(input_dataframe, sort_category='ata', ascending=False)
     gant_chart_ground(ground_time_ranges, 'Ground Times', show=0, save=1)
-
-    gant_chart_bays(input_dataframe, 'Bay Assignment', show=1, save=1)
+    
+    if pulp.LpStatus[Bay_Assignment.status] != 'Infeasible':
+        gant_chart_bays(input_dataframe, 'Bay Assignment', show=1, save=1)
 
 
 

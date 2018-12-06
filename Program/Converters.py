@@ -59,7 +59,8 @@ def inputs_list2dataframe(input_data):
                                        'long stay'       ,
                                        'night stay'      ,
                                        'connection'      ,
-                                       'ac type'         ]]
+                                       'ac type'         ,
+                                       'terminal'        ]]
     
     return input_dataframe
 

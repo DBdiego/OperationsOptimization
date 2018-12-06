@@ -139,9 +139,12 @@ def add_fuelling_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
 
         # Defining serviceable bays
         bay_list = list(group2bay_compliance['Bay'])
-        bay_list.remove('J7')
-        bay_list.remove('J8')
-        bay_list.remove('J9')
+        try:
+            bay_list.remove('J7')
+            bay_list.remove('J8')
+            bay_list.remove('J9')
+        except:
+            pass
             # STPV not removed because they don't even exist in the list of all bays
 
         fuelling_bays = bay_list
@@ -175,7 +178,8 @@ def add_fuelling_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
                 constraint_variables = ['x_' + str(i-1) + '_' + bay ,
                                         'x_' + str(i  ) + '_' + bay ]  
 
-                constraint.update({constraint_variables[0]: 1, constraint_variables[1]: 1})
+                constraint.update({constraint_variables[0]: 1,
+                                   constraint_variables[1]: 1})
 
                 constraint_vars.append(constraint_variables[0])
                 constraint_vars.append(constraint_variables[1])
@@ -205,14 +209,16 @@ def add_split_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
     i = 0
     while i < len(input_data):
 
-        # Defining coefficient of constraint
-        constraint_1 = {}
-        constraint_2 = {}
-        constraint_vars_1 = []
-        constraint_vars_2 = []
 
         if int(input_data[i]['move type'] == 'Full') == 0:
+
             for k, bay in enumerate(all_bays):
+                # Defining coefficient of constraint
+                constraint_1 = {}
+                constraint_2 = {}
+                constraint_vars_1 = []
+                constraint_vars_2 = []
+
 
                 constraint_variable_1 = 'x_' + str(i  ) + '_' + bay
                 constraint_variable_2 = 'x_' + str(i+1) + '_' + bay
@@ -220,7 +226,7 @@ def add_split_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
                 
                 constraint_variable_4 = 'v_' + str(i  ) + '_' + bay
                 constraint_variable_5 = 'v_' + str(i+1) + '_' + bay
-                
+                #print(constraint_variable_5)
                 constraint_variable_6 = 'w_' + str(i+1) + '_' + bay
                 constraint_variable_7 = 'w_' + str(i+2) + '_' + bay
                 
@@ -228,28 +234,32 @@ def add_split_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
                 # Constraint 1
                 constraint_1.update({constraint_variable_1:  1,
                                      constraint_variable_2: -1,
-                                     constraint_variable_4: -1,
+                                     constraint_variable_4: -1,#})
                                      constraint_variable_6:  1})
                 constraint_vars_1 = constraint_vars_1 + [constraint_variable_1,
                                                          constraint_variable_2,
-                                                         constraint_variable_4,
+                                                         constraint_variable_4,#]
                                                          constraint_variable_6]
 
                 # Constraint 2
                 constraint_2.update({constraint_variable_2:  1,
                                      constraint_variable_3: -1,
-                                     constraint_variable_5: -1,
+                                     constraint_variable_5: -1,#})
                                      constraint_variable_7:  1})
                 constraint_vars_2 = constraint_vars_2 + [constraint_variable_2,
                                                          constraint_variable_3,
-                                                         constraint_variable_5,
+                                                         constraint_variable_5,#]
                                                          constraint_variable_7]
 
 
-            Bay_Assignment += pulp.lpSum([constraint_1[l] * flight_vars[l] for l in constraint_vars_1]) == 0, 'SPF' + str(i  ) + 'B' + str(k) 
-            Bay_Assignment += pulp.lpSum([constraint_2[l] * flight_vars[l] for l in constraint_vars_2]) == 0, 'SPF' + str(i+1) + 'B' + str(k)
+                Bay_Assignment += pulp.lpSum([constraint_1[l] * flight_vars[l] for l in constraint_vars_1]) == 0, 'SPF' + str(i  ) + 'B' + str(k) 
+                Bay_Assignment += pulp.lpSum([constraint_2[l] * flight_vars[l] for l in constraint_vars_2]) == 0, 'SPF' + str(i+1) + 'B' + str(k)
 
-            number_constraints += 2
+
+
+            
+
+                number_constraints += 2
             
             i += 2 # To skip 'Park' & 'Dep'
         i += 1
@@ -258,6 +268,8 @@ def add_split_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
         print ('       Added '+str(number_constraints)+'\n')
 
     return Bay_Assignment, number_constraints
+
+
 
 
 
