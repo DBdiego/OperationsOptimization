@@ -82,7 +82,7 @@ def add_time_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
             if (i < j):
                 
                 # if comparator arrival is within the stay of the subject flight
-                if (subject_arrival < comparator_data['atd']) and (subject_departure > comparator_data['ata']):
+                if (subject_arrival <= comparator_data['atd']) and (subject_departure >= comparator_data['ata']) and (subject_data['flight index'] != comparator_data['flight index']):
 
                     time_conflict_matrix[i,j] = 1
                     time_conflict_matrix[j,i] = 1 #Not sure how usefull this is...
