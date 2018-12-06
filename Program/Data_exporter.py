@@ -16,7 +16,7 @@ import Converters as CONV
 
 
 
-def save_data(input_data, Bay_Assignment):
+def save_data(input_data, Bay_Assignment, solve_status):
     print ('Exporting data to Excel: ...')
     start_time_export = time.time()
 
@@ -27,19 +27,19 @@ def save_data(input_data, Bay_Assignment):
     # Exporting inputs to a csv file (for eventual later use)
     input_dataframe.to_csv('./outputs/Generated Inputs.csv')
 
-    if pulp.LpStatus[Bay_Assignment.status] != 'Infeasible':
+    if solve_status.lower() == 'optimal':
         # Adding assigned bay to flights
         bay_assignment = list(np.zeros(len(input_data)))
         
-        for decision_variable in Bay_Assignment.variables():
-            if int(decision_variable.varValue) and decision_variable.name.find('x') != -1:
+        for decision_variable in Bay_Assignment.iter_binary_vars():
+            if int(decision_variable.solution_value) and decision_variable.name.find('x') != -1:
                 
                 dv, var_type, flight_index, bay = decision_variable.name.split('_')
                 bay_assignment[int(flight_index)] = bay
 
-            if (decision_variable.name.find('v') != -1 or  decision_variable.name.find('w')!= -1 or  decision_variable.name.find('u')!= -1) and int(decision_variable.varValue):
-                #print(decision_variable.name, decision_variable.varValue)
-                pass
+            if (decision_variable.name.find('v') != -1 or  decision_variable.name.find('w')!= -1 or  decision_variable.name.find('u')!= -1) and int(decision_variable.solution_value):
+                print(decision_variable.name, decision_variable.solution_value)
+                #pass
 
 
         output_dataframe['Bay'] = bay_assignment
@@ -98,13 +98,13 @@ def save_data(input_data, Bay_Assignment):
 
 
 
-    # Creating Charts
-    print ('Generating charts: ...')
-    start_time_charts = time.time()
+        # Creating Charts
+        print ('Generating charts: ...')
+        start_time_charts = time.time()
 
-    ChC.generate_charts(input_dataframe, output_dataframe, towings_dataframe, Bay_Assignment)
-    
-    print ('Generating charts: DONE (' + str(round(time.time()-start_time_charts, 3)) +' seconds)\n')
+        ChC.generate_charts(input_dataframe, output_dataframe, towings_dataframe, solve_status)
+        
+        print ('Generating charts: DONE (' + str(round(time.time()-start_time_charts, 3)) +' seconds)\n')
     
     
     return output_dataframe

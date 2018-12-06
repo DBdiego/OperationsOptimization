@@ -19,7 +19,7 @@ import Converters as CONV
 all_bays = list(DI.all_bays)[::-1]
 midnight_today = pd.to_datetime('today').replace(hour=0, minute=0, second=0, microsecond=0)
 
-def generate_charts(input_dataframe, output_dataframe, towings_dataframe, Bay_Assignment):
+def generate_charts(input_dataframe, output_dataframe, towings_dataframe, solve_status):
 
     
 
@@ -27,7 +27,7 @@ def generate_charts(input_dataframe, output_dataframe, towings_dataframe, Bay_As
     ground_time_ranges = assign_time_data2FN(input_dataframe, sort_category='ata', ascending=False)
     gant_chart_ground(ground_time_ranges, 'Ground Times', show=0, save=1)
     
-    if pulp.LpStatus[Bay_Assignment.status] != 'Infeasible':
+    if solve_status.lower() == 'optimal':
         gant_chart_bays(input_dataframe, 'Bay Assignment', show=1, save=1)
 
 

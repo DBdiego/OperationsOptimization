@@ -46,9 +46,8 @@ def add_bay_compliance(input_data, Bay_Assignment, flight_vars, fb=0):
         constraint_collection.update({'BC'+str(i):{'constraint':constraint,
                                                    'variables' :constraint_vars}})
         
-        #Bay_Assignment += pulp.lpSum([constraint[i]*flight_vars[i] for i in constraint_vars]) == 1, 'BC'+str(i)
-        Bay_Assignment.add_constraint((Bay_Assignment.sum(constraint[i]*flight_vars[i] for i in constraint_vars) == 1), ctname='BC'+str(i))
-        
+        Bay_Assignment += pulp.lpSum([constraint[i]*flight_vars[i] for i in constraint_vars]) == 1, 'BC'+str(i)
+
         number_constraints += 1
 
     if fb:
@@ -106,9 +105,7 @@ def add_time_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
                             constraint_coef = {'x_' + str(i) + '_' + bay: 1,
                                                'x_' + str(j) + '_' + bay: 1}
                             
-                            #Bay_Assignment += pulp.lpSum([constraint_coef[i]*flight_vars[i] for i in constraint_vars]) <= 1, constraint_name
-                            Bay_Assignment.add_constraint((Bay_Assignment.sum(constraint_coef[i]*flight_vars[i] for i in constraint_vars) <= 1), ctname=constraint_name)
-
+                            Bay_Assignment += pulp.lpSum([constraint_coef[i]*flight_vars[i] for i in constraint_vars]) <= 1, constraint_name
                             number_constraints += 1
 
     if fb:                            
@@ -166,8 +163,7 @@ def add_fuelling_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
 
             constraint_collection.update({'F' + str(i): {'constraint': constraint,
                                                           'variables': constraint_vars}})
-            #Bay_Assignment += pulp.lpSum([constraint[i] * flight_vars[i] for i in constraint_vars]) == 1, 'F' + str(i)
-            Bay_Assignment.add_constraint((Bay_Assignment.sum(constraint[i] * flight_vars[i] for i in constraint_vars) == 1), ctname='F' + str(i))
+            Bay_Assignment += pulp.lpSum([constraint[i] * flight_vars[i] for i in constraint_vars]) == 1, 'F' + str(i)
 
             number_constraints += 1
 
@@ -189,8 +185,7 @@ def add_fuelling_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
 
             constraint_collection.update({'F' + str(i): {'constraint': constraint,
                                                           'variables': constraint_vars}})
-            #Bay_Assignment += pulp.lpSum([constraint[i] * flight_vars[i] for i in constraint_vars]) >= 1, 'F' + str(i)
-            Bay_Assignment.add_constraint((Bay_Assignment.sum(constraint[i] * flight_vars[i] for i in constraint_vars) >= 1), ctname='F' + str(i))
+            Bay_Assignment += pulp.lpSum([constraint[i] * flight_vars[i] for i in constraint_vars]) >= 1, 'F' + str(i)
 
             number_constraints += 1
 
@@ -256,11 +251,8 @@ def add_split_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
                                                          constraint_variable_7]
 
 
-                #Bay_Assignment += pulp.lpSum([constraint_1[l] * flight_vars[l] for l in constraint_vars_1]) == 0, 'SPF' + str(i  ) + 'B' + str(k) 
-                #Bay_Assignment += pulp.lpSum([constraint_2[l] * flight_vars[l] for l in constraint_vars_2]) == 0, 'SPF' + str(i+1) + 'B' + str(k)
-                
-                Bay_Assignment.add_constraint((Bay_Assignment.sum(constraint_1[l]*flight_vars[l] for l in constraint_vars_1) == 0), ctname='SPF' + str(i  ) + 'B' + str(k))
-                Bay_Assignment.add_constraint((Bay_Assignment.sum(constraint_2[l]*flight_vars[l] for l in constraint_vars_2) == 0), ctname='SPF' + str(i+1) + 'B' + str(k))
+                Bay_Assignment += pulp.lpSum([constraint_1[l] * flight_vars[l] for l in constraint_vars_1]) == 0, 'SPF' + str(i  ) + 'B' + str(k) 
+                Bay_Assignment += pulp.lpSum([constraint_2[l] * flight_vars[l] for l in constraint_vars_2]) == 0, 'SPF' + str(i+1) + 'B' + str(k)
                 
 
 
@@ -336,8 +328,7 @@ def add_adjancy_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
                                                                    'x_' + str(j) + '_10' ,
                                                                    'x_' + str(j) + '_11' ]
 
-                            #Bay_Assignment += pulp.lpSum([constraint1[k]*flight_vars[k] for k in constraint_vars1]) <= 1, 'ADJ1011I'+str(i)+'O'+str(j)
-                            Bay_Assignment.add_constraint((Bay_Assignment.sum(constraint1[k]*flight_vars[k] for k in constraint_vars1) <= 1), ctname='ADJ1011I'+str(i)+'O'+str(j))
+                            Bay_Assignment += pulp.lpSum([constraint1[k]*flight_vars[k] for k in constraint_vars1]) <= 1, 'ADJ1011I'+str(i)+'O'+str(j)
 
 
                             # Make constraints for bays 5 and 6 (share a gate)
@@ -351,8 +342,7 @@ def add_adjancy_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
                                                                     'x_' + str(j) + '_5' ,
                                                                     'x_' + str(j) + '_6' ]
                             
-                            #Bay_Assignment += pulp.lpSum([constraint2[k]*flight_vars[k] for k in constraint_vars2]) <= 1, 'ADJ56I'+str(i)+'O'+str(j)
-                            Bay_Assignment.add_constraint((Bay_Assignment.sum(constraint2[k]*flight_vars[k] for k in constraint_vars2) <= 1), ctname='ADJ1011I'+str(i)+'O'+str(j))
+                            Bay_Assignment += pulp.lpSum([constraint2[k]*flight_vars[k] for k in constraint_vars2]) <= 1, 'ADJ56I'+str(i)+'O'+str(j)
 
                             number_constraints += 2
 
