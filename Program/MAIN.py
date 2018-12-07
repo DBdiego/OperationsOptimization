@@ -27,7 +27,7 @@ import Converters as CONV
 USE_PREGENERATED_DATA = 1 # Use existing file as input
 
 # [0] Generate Input Data
-input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=120, show_result=0)
+input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=10, show_result=0)
 
 
 # [1] Objective function coefficients & Weights
@@ -87,6 +87,10 @@ Bay_Assignment, num_NS = CONSTR.add_split_constraint(input_data, Bay_Assignment,
 print ('Adding Constraints: DONE ('+str(round(time.time() - start_constraints, 3))+' seconds)\n')
 
 
+# [5.1] Adding KPI's
+Bay_Assignment.add_kpi(Bay_Assignment.sum(coefficients[i]*flight_vars[i] for i in flight_var_indices if 'x' in i), 'Passenger Distance')
+#Bay_Assignment.report()
+
 # [6] Writing .lp file
 print('Writing to .lp file: ...')
 start_writing = time.time()
@@ -95,6 +99,8 @@ start_writing = time.time()
 Bay_Assignment.export('./Bay_Assignment.lp')
 
 print('Writing to .lp file: DONE ('+str(round(time.time() - start_writing, 3))+' seconds)\n')
+
+
 
 
 # [7] The problem is SOLVED using CPLEX

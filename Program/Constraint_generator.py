@@ -173,7 +173,7 @@ def add_fuelling_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
 
         # Flight is in long stay (Just domestic during parking or departure phase)
         #   resulting in: (long_stay == 1 and domestic==1 and move_type=='Park') or ... ejected because we use i-1 in constraint
-        if (long_stay == 1 and domestic==1 and move_type=='Dep'): 
+        if (long_stay == 1 and domestic==1 and move_type=='Park'): 
 
             for j, bay in enumerate(fuelling_bays):
                 
