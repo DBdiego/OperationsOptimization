@@ -94,7 +94,7 @@ def add_time_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
                     # Conflict Bays
                     if np.sum(subject_bays * comparator_bays) > 0:
                         
-                        conflicting_bays = all_bays[(subject_bays * comparator_bays) > 0]
+                        conflicting_bays = all_bays#[(subject_bays * comparator_bays) > 0]
 
                         # Creating a constraint for all conflict bays
                         for k, bay in enumerate(conflicting_bays):

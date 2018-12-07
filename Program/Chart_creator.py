@@ -7,9 +7,10 @@ import datetime
 import pulp
 
 # --> Module classes
-import matplotlib.dates  as mdates
-import matplotlib.lines as mlines
+import matplotlib.patches as patches
 import matplotlib.pyplot as plt
+import matplotlib.lines as mlines
+import matplotlib.dates as mdates
 from math import *
 
 # --> Home made files
@@ -152,6 +153,19 @@ def gant_chart_ground(input_data, chart_title, show=0, save=1):
 
 
 def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.8, show=0, save=1):
+
+    rect_height = 0.65
+
+    edge_full = '#000000'
+    edge_arr  = '#1464F4'
+    edge_park = '#32AD32'
+    edge_dep  = '#FF0000'
+    
+    fill_dom  = '#C6BC99' #'#DDD9C4'  #'#C6BC99' #'#6C6C6C'
+    fill_int  = '#E5E5E5' #'#F0F0F0'
+    
+    text_dom  = '#2C2C2C'
+    text_int  = '#3C3C3C'
     
     if show or save:
 
@@ -161,7 +175,7 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
         fig = plt.figure(figsize=(fig_size_unit_x, fig_size_unit_y))
         ax  = fig.add_subplot(111)
         
-        myFmt = mdates.DateFormatter('%H:%M')
+        myFmt = mdates.DateFormatter('%Hh')
 
 
         max_atd = midnight_today
@@ -169,7 +183,7 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
         for flight_data in input_data.to_dict('records'):
             bay_index = all_bays.index(flight_data['Bay'])
 
-            #Characteristics
+            # Characteristics
             move_type = flight_data['move type']
             ata = pd.to_datetime(flight_data['ata'], format='%H:%M (%d/%m)')
             atd = pd.to_datetime(flight_data['atd'], format='%H:%M (%d/%m)')
@@ -177,31 +191,72 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
             ata = ata.replace(year= int(pd.to_datetime('today').year) )
             atd = atd.replace(year= int(pd.to_datetime('today').year) )
 
+            
+            # Domestic of International
+            if flight_data['connection'] == 'DOM':
+                fill_color = fill_dom 
+                text_color = text_dom
+                
+            else:
+                fill_color = fill_int
+                text_color = text_int
+
+
 
             # Color and times of arrival & departure
             if move_type.lower() == 'full':
-                color = 'black'
+                edge_color = edge_full
                 alpha_line = Full
 
+                # Adding flight index
+                ax.text( ata + (atd-ata)/2, bay_index+1 ,
+                         flight_data['Fl No. Arrival']  ,
+                         verticalalignment = 'center'   ,
+                         horizontalalignment = 'center' ,
+                         fontsize = 6                   ,
+                         color = text_color             ,
+                         zorder = 12                     )
+
             elif move_type.lower() == 'arr':
-                color = 'blue'
+                edge_color = edge_arr
                 alpha_line = Arr
                 
             else:
                 if previous_bay_index != bay_index:
-                    ax.plot([ata, ata], [previous_bay_index+1, bay_index+1], c = 'black', lw=1.5, ls='--', alpha = min(Arr, Park, Dep))
+                    ax.plot([ata, ata], [previous_bay_index+1, bay_index+1], c = 'black', lw=1.0, ls=':', alpha = min(Arr, Park, Dep))
 
                     
                 if move_type.lower() == 'park':
-                    color = 'green'
+                    edge_color = edge_park
                     alpha_line = Park
+
+                    # Adding flight index
+                    ax.text( ata + (atd-ata)/2, bay_index+1 ,
+                             flight_data['Fl No. Arrival']  ,
+                             verticalalignment = 'center'   ,
+                             horizontalalignment = 'center' ,
+                             fontsize = 6                   ,
+                             color = text_color             ,
+                             zorder = 12                     )
                     
                 else:
-                    color = 'red'
+                    edge_color = edge_dep
                     alpha_line = Dep
+
             
-            # Plotting the line
-            ax.plot([ata, atd],[bay_index+1, bay_index+1], c=color, lw=5, alpha=alpha_line)
+            # Plotting the rectangles
+            Rect = patches.Rectangle((ata,(bay_index+1)-rect_height/2),
+                                     (atd-ata)                        ,
+                                     rect_height                      ,   
+                                     linewidth = 0.8                  ,
+                                     edgecolor = edge_color           ,
+                                     facecolor = fill_color           ,
+                                     alpha = alpha_line               ,
+                                     zorder = 10                       )
+            
+            # Add the patch to the Axes
+            ax.add_patch(Rect)
+
             
             previous_bay_index = bay_index
             
@@ -219,6 +274,7 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
         ax.set_title(chart_title)
         
         ax.xaxis.set_major_formatter(myFmt)
+        ax.xaxis.set_major_locator(mdates.HourLocator())
         
         ax.set_yticks(range(1, len(all_bays)+1))
         ax.set_yticklabels(all_bays, fontsize=10)
@@ -229,15 +285,21 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
         ax.set_xlim([midnight_today, max_atd + datetime.timedelta(minutes=45)])
 
         #Legend
-        full_stay_line = mlines.Line2D([],[], color='black', label='Full stay')
-        arr_stay_line  = mlines.Line2D([],[], color='blue' , label='Arrival stay')
-        park_stay_line = mlines.Line2D([],[], color='green', label='Parking stay')
-        dep_stay_line  = mlines.Line2D([],[], color='red'  , label='Departure stay' )
+        full_stay_patch = patches.Patch(linewidth = 0.8, edgecolor = edge_full, facecolor = 'none' ,alpha = alpha_line, label='Full stay'     )
+        arr_stay_patch  = patches.Patch(linewidth = 0.8, edgecolor = edge_arr , facecolor = 'none' ,alpha = alpha_line, label='Arrival stay'  )
+        park_stay_patch = patches.Patch(linewidth = 0.8, edgecolor = edge_park, facecolor = 'none' ,alpha = alpha_line, label='Parking stay'  )
+        dep_stay_patch  = patches.Patch(linewidth = 0.8, edgecolor = edge_dep , facecolor = 'none' ,alpha = alpha_line, label='Departure stay')
+
+        dom_stay_patch  = patches.Patch(linewidth = 0.8, edgecolor = 'none', facecolor = fill_dom ,alpha = alpha_line, label='Domestic Flight'      )
+        int_stay_patch  = patches.Patch(linewidth = 0.8, edgecolor = 'none', facecolor = fill_int ,alpha = alpha_line, label='International Flight' )
         
-        ax.legend(handles=[full_stay_line,
-                           arr_stay_line ,
-                           park_stay_line,
-                           dep_stay_line ],loc='lower left')
+        
+        ax.legend(handles=[full_stay_patch,
+                           arr_stay_patch ,
+                           park_stay_patch,
+                           dep_stay_patch ,
+                           dom_stay_patch ,
+                           int_stay_patch ],loc='lower left')
 
         #Remove useless part of the box
         ax.spines[  'top'].set_visible(False)
@@ -246,6 +308,7 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
         #Others
         plt.grid(axis = 'x', alpha = 0.8, zorder = 0)   
         plt.subplots_adjust(left=0.075, bottom=0.075, right=0.99, top=0.94, wspace=0.1, hspace=0.4)
+
 
 
         if save:
