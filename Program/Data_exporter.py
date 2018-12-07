@@ -38,8 +38,8 @@ def save_data(input_data, Bay_Assignment, solve_status):
                 bay_assignment[int(flight_index)] = bay
 
             if (decision_variable.name.find('v') != -1 or  decision_variable.name.find('w')!= -1 or  decision_variable.name.find('u')!= -1) and int(decision_variable.solution_value):
-                print(decision_variable.name, decision_variable.solution_value)
-                #pass
+                #print(decision_variable.name, decision_variable.solution_value)
+                pass
 
 
         output_dataframe['Bay'] = bay_assignment

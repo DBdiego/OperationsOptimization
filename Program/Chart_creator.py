@@ -28,7 +28,11 @@ def generate_charts(input_dataframe, output_dataframe, towings_dataframe, solve_
     gant_chart_ground(ground_time_ranges, 'Ground Times', show=0, save=1)
     
     if solve_status.lower() == 'optimal':
-        gant_chart_bays(input_dataframe, 'Bay Assignment', show=1, save=1)
+        gant_chart_bays(input_dataframe, 'Bay Assignment All'  , Full=1.0, Arr=1.0, Park=1.0, Dep=1.0,  show=1, save=1)
+        gant_chart_bays(input_dataframe, 'Bay Assignment Full' , Full=0.8, Arr=0.2, Park=0.2, Dep=0.2,  show=0, save=1)
+        gant_chart_bays(input_dataframe, 'Bay Assignment Arr'  , Full=0.2, Arr=0.8, Park=0.2, Dep=0.2,  show=0, save=1)
+        gant_chart_bays(input_dataframe, 'Bay Assignment Park' , Full=0.2, Arr=0.2, Park=0.8, Dep=0.2,  show=0, save=1)
+        gant_chart_bays(input_dataframe, 'Bay Assignment Dep'  , Full=0.2, Arr=0.2, Park=0.2, Dep=0.8,  show=0, save=1)
 
 
 
@@ -147,7 +151,7 @@ def gant_chart_ground(input_data, chart_title, show=0, save=1):
 
 
 
-def gant_chart_bays(input_data, chart_title, show=0, save=1):
+def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.8, show=0, save=1):
     
     if show or save:
 
@@ -177,23 +181,27 @@ def gant_chart_bays(input_data, chart_title, show=0, save=1):
             # Color and times of arrival & departure
             if move_type.lower() == 'full':
                 color = 'black'
+                alpha_line = Full
 
             elif move_type.lower() == 'arr':
                 color = 'blue'
+                alpha_line = Arr
                 
             else:
                 if previous_bay_index != bay_index:
-                    ax.plot([ata, ata], [previous_bay_index+1, bay_index+1], c = 'black', lw=0.5, ls='--')
+                    ax.plot([ata, ata], [previous_bay_index+1, bay_index+1], c = 'black', lw=1.5, ls='--', alpha = min(Arr, Park, Dep))
 
                     
                 if move_type.lower() == 'park':
                     color = 'green'
+                    alpha_line = Park
                     
                 else:
                     color = 'red'
+                    alpha_line = Dep
             
-            
-            ax.plot([ata, atd],[bay_index+1, bay_index+1], c=color, lw=1, alpha=0.8)
+            # Plotting the line
+            ax.plot([ata, atd],[bay_index+1, bay_index+1], c=color, lw=5, alpha=alpha_line)
             
             previous_bay_index = bay_index
             

@@ -27,7 +27,7 @@ import Converters as CONV
 USE_PREGENERATED_DATA = 0 # Use existing file as input
 
 # [0] Generate Input Data
-input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=110, show_result=0)
+input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=20, show_result=0)
 
 
 # [1] Objective function coefficients & Weights
@@ -129,7 +129,6 @@ print ('========================== \n\n')
 
 # [9] Saving Overview of problem solution
 solve_status = Bay_Assignment.solve_details.status.split(' ')[1]
-print(solve_status)
 output_dataframe = DE.save_data(input_data, Bay_Assignment, solve_status)
 
 
