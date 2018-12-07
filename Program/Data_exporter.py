@@ -32,7 +32,7 @@ def save_data(input_data, Bay_Assignment, solve_status):
         bay_assignment = list(np.zeros(len(input_data)))
         
         for decision_variable in Bay_Assignment.iter_binary_vars():
-            if int(decision_variable.solution_value) and decision_variable.name.find('x') != -1:
+            if int(decision_variable.solution_value)==1 and decision_variable.name.find('x') != -1:
                 
                 dv, var_type, flight_index, bay = decision_variable.name.split('_')
                 bay_assignment[int(flight_index)] = bay

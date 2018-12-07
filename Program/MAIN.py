@@ -24,7 +24,7 @@ import Converters as CONV
 
 
 
-USE_PREGENERATED_DATA = 0 # Use existing file as input
+USE_PREGENERATED_DATA = 1 # Use existing file as input
 
 # [0] Generate Input Data
 input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=120, show_result=0)
@@ -88,7 +88,13 @@ print ('Adding Constraints: DONE ('+str(round(time.time() - start_constraints, 3
 
 
 # [6] Writing .lp file
+print('Writing to .lp file: ...')
+start_writing = time.time()
+
 #Bay_Assignment.writeLP('./Bay_Assignment.lp')
+Bay_Assignment.export('./Bay_Assignment.lp')
+
+print('Writing to .lp file: DONE ('+str(round(time.time() - start_writing, 3))+' seconds)\n')
 
 
 # [7] The problem is SOLVED using CPLEX
@@ -102,7 +108,7 @@ Bay_Assignment.solve()
 print('Solving the problem: DONE ('+str(round(time.time() - start_solve, 3))+' seconds)\n\n')
 
 
-solve_status = Bay_Assignment.solve_details.status.split(' ')[1]
+solve_status = Bay_Assignment.solve_details.status.split(' ')[1].replace(',', '')
 if extra_info:
     print (Bay_Assignment.solve_details)
 

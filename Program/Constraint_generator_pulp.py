@@ -136,17 +136,9 @@ def add_fuelling_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
         domestic  = flight['connection']=='DOM'
 
 
-        # Defining serviceable bays
+        # Defining serviceable bays (STPV not removed because they don't even exist in the list of all bays)
         bay_list = list(group2bay_compliance['Bay'])
-        try:
-            bay_list.remove('J7')
-            bay_list.remove('J8')
-            bay_list.remove('J9')
-        except:
-            pass
-            # STPV not removed because they don't even exist in the list of all bays
-
-        fuelling_bays = bay_list
+        fuelling_bays = [x for x in bay_list if x not in ['J7', 'J8', 'J9']]
 
         # Defining coefficient of constraint
         constraint = {}
@@ -169,7 +161,7 @@ def add_fuelling_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
 
         # Flight is in long stay (Just domestic during parking or departure phase)
         #   resulting in: (long_stay == 1 and domestic==1 and move_type=='Park') or ... ejected because we use i-1 in constraint
-        if (long_stay == 1 and domestic==1 and move_type=='Dep'): 
+        if (long_stay == 1 and domestic == 1 and move_type == 'Park'): 
 
             for j, bay in enumerate(fuelling_bays):
                 
