@@ -222,8 +222,9 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
                 alpha_line = Arr
                 
             else:
+                # Dotted line between parts of split flight
                 if previous_bay_index != bay_index:
-                    ax.plot([ata, ata], [previous_bay_index+1, bay_index+1], c = 'black', lw=1.0, ls=':', alpha = min(Arr, Park, Dep))
+                    ax.plot([ata, ata], [previous_bay_index+1, bay_index+1], c = 'black', lw=0.8, ls=':', alpha = min(Arr, Park, Dep), zorder=  20)
 
                     
                 if move_type.lower() == 'park':
@@ -264,9 +265,12 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
             if atd > max_atd:
                 max_atd = atd
 
-        
+        # Horizontal grid lines
         for i in range(len(all_bays)):
-            ax.plot([midnight_today, max_atd],[i+1, i+1], c='k', ls='--', lw=0.3, alpha=0.2)
+            if i in [all_bays.index(x) for x in all_bays if x in ['J7', 'J8', 'J9']]:
+                ax.plot([midnight_today, max_atd],[i+1, i+1], c='r', ls='--', lw=0.5, alpha=0.9)
+            else:
+                ax.plot([midnight_today, max_atd],[i+1, i+1], c='k', ls='--', lw=0.3, alpha=0.2)
             
 
         
@@ -285,13 +289,13 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
         ax.set_xlim([midnight_today, max_atd + datetime.timedelta(minutes=45)])
 
         #Legend
-        full_stay_patch = patches.Patch(linewidth = 0.8, edgecolor = edge_full, facecolor = 'none' ,alpha = alpha_line, label='Full stay'     )
-        arr_stay_patch  = patches.Patch(linewidth = 0.8, edgecolor = edge_arr , facecolor = 'none' ,alpha = alpha_line, label='Arrival stay'  )
-        park_stay_patch = patches.Patch(linewidth = 0.8, edgecolor = edge_park, facecolor = 'none' ,alpha = alpha_line, label='Parking stay'  )
-        dep_stay_patch  = patches.Patch(linewidth = 0.8, edgecolor = edge_dep , facecolor = 'none' ,alpha = alpha_line, label='Departure stay')
+        full_stay_patch = patches.Patch(linewidth = 0.8, edgecolor = edge_full, facecolor = 'none' ,alpha = Full, label='Full stay'     )
+        arr_stay_patch  = patches.Patch(linewidth = 0.8, edgecolor = edge_arr , facecolor = 'none' ,alpha = Arr , label='Arrival stay'  )
+        park_stay_patch = patches.Patch(linewidth = 0.8, edgecolor = edge_park, facecolor = 'none' ,alpha = Park, label='Parking stay'  )
+        dep_stay_patch  = patches.Patch(linewidth = 0.8, edgecolor = edge_dep , facecolor = 'none' ,alpha = Dep , label='Departure stay')
 
-        dom_stay_patch  = patches.Patch(linewidth = 0.8, edgecolor = 'none', facecolor = fill_dom ,alpha = alpha_line, label='Domestic Flight'      )
-        int_stay_patch  = patches.Patch(linewidth = 0.8, edgecolor = 'none', facecolor = fill_int ,alpha = alpha_line, label='International Flight' )
+        dom_stay_patch  = patches.Patch(linewidth = 0.8, edgecolor = 'none', facecolor = fill_dom ,alpha = 0.8, label='Domestic Flight'      )
+        int_stay_patch  = patches.Patch(linewidth = 0.8, edgecolor = 'none', facecolor = fill_int ,alpha = 0.8, label='International Flight' )
         
         
         ax.legend(handles=[full_stay_patch,

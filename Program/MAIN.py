@@ -11,12 +11,12 @@ import time
 
 # --> Module classes
 from docplex.mp.model import Model
+from docplex.mp.conflict_refiner import ConflictRefiner
 from math import *
 
 # --> Home made files
 import Coefficient_calculator as CoC
 import Constraint_generator as CONSTR
-import Constraint_generator_pulp as CONSTR_P
 import Input_generator as IG
 import Data_importer as DI
 import Data_exporter as DE
@@ -27,7 +27,7 @@ import Converters as CONV
 USE_PREGENERATED_DATA = 1 # Use existing file as input
 
 # [0] Generate Input Data
-input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=10, show_result=0)
+input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=110, show_result=0)
 
 
 # [1] Objective function coefficients & Weights
@@ -87,7 +87,13 @@ Bay_Assignment, num_NS = CONSTR.add_split_constraint(input_data, Bay_Assignment,
 print ('Adding Constraints: DONE ('+str(round(time.time() - start_constraints, 3))+' seconds)\n')
 
 
-# [5.1] Adding KPI's
+# [5.1] Checking for conflicting constraints
+print ('Checking for conflicting constraints: ...')
+crefiner = ConflictRefiner()
+conflicts = crefiner.refine_conflict(Bay_Assignment)
+print ('Checking for conflicting constraints: DONE ('+ str(len(conflicts))+' found)\n')
+
+# [5.2] Adding KPI's
 Bay_Assignment.add_kpi(Bay_Assignment.sum(coefficients[i]*flight_vars[i] for i in flight_var_indices if 'x' in i), 'Passenger Distance')
 #Bay_Assignment.report()
 
@@ -114,7 +120,7 @@ Bay_Assignment.solve()
 print('Solving the problem: DONE ('+str(round(time.time() - start_solve, 3))+' seconds)\n\n')
 
 
-solve_status = Bay_Assignment.solve_details.status.split(' ')[1].replace(',', '')
+solve_status = Bay_Assignment.solve_details.status
 if extra_info:
     print (Bay_Assignment.solve_details)
 
@@ -140,7 +146,7 @@ print ('========================== \n\n')
 
 
 # [9] Saving Overview of problem solution
-solve_status = Bay_Assignment.solve_details.status.split(' ')[1]
+solve_status = solve_status.split(' ')[1].replace(',', '') #= Bay_Assignment.solve_details.status.split(' ')[1]
 output_dataframe = DE.save_data(input_data, Bay_Assignment, solve_status)
 
 

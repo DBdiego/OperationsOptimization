@@ -84,12 +84,13 @@ def save_data(input_data, Bay_Assignment, solve_status):
                                                    'Arr -> Park'     ,
                                                    'Park -> Dep'     ]]
         else:
-            towings_dataframe[['Fl No. Arrival'  ,
-                               'Arrival Bay'     ,
-                               'Park Bay'        ,
-                               'Departure Bay'   ,
-                               'Arr -> Park'     ,
-                               'Park -> Dep'     ]] = [0,0,0,0,0,0]
+            towings_dataframe['Fl No. Arrival'] = [0]
+            towings_dataframe['Arrival Bay'   ] = [0]
+            towings_dataframe['Park Bay'      ] = [0]
+            towings_dataframe['Departure Bay' ] = [0]
+            towings_dataframe['Arr -> Park'   ] = [0]
+            towings_dataframe['Park -> Dep'   ] = [0]
+            
 
         # Exporting all data to excel
         export_2_excel(input_dataframe, output_dataframe, towings_dataframe)

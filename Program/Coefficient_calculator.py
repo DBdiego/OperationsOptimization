@@ -77,8 +77,8 @@ def coefficient_calculator(input_data, fb = 1):
             # Compute coefficient of first objective function
             z1_coefficients[gobal_index] = aircraft_capacity * distance
 
-            if flight_data['move type']=='Park':
-                coefficient = (aircraft_capacity * distance)*(-1) * alpha
+            if flight_data['move type'] in ['Arr', 'Park']:
+                coefficient = 0#(aircraft_capacity * distance)*(-1) * alpha
             else:
                 coefficient = (aircraft_capacity * distance)*(-1) * alpha
 
