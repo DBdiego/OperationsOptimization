@@ -21,20 +21,20 @@ all_bays = list(DI.all_bays)[::-1]
 midnight_today = pd.to_datetime('today').replace(hour=0, minute=0, second=0, microsecond=0)
 midnight_tomorrow = midnight_today + datetime.timedelta(days=1)
 
-def generate_charts(input_dataframe, output_dataframe, towings_dataframe, solve_status):
+def generate_charts(input_dataframe, output_dataframe, towings_dataframe, solve_status, fb=1):
 
     
 
     #Ground Times of aircraft
     ground_time_ranges = assign_time_data2FN(input_dataframe, sort_category='ata', ascending=False)
-    gant_chart_ground(ground_time_ranges, 'Ground Times', show=0, save=1)
+    gant_chart_ground(ground_time_ranges, 'Ground Times', show=0, save=1, fb=1)
     
     if solve_status.lower() == 'optimal':
-        gant_chart_bays(input_dataframe, 'Bay Assignment All'  , Full=1.0, Arr=1.0, Park=1.0, Dep=1.0,  show=1, save=1)
-        gant_chart_bays(input_dataframe, 'Bay Assignment Full' , Full=0.8, Arr=0.2, Park=0.2, Dep=0.2,  show=0, save=1)
-        gant_chart_bays(input_dataframe, 'Bay Assignment Arr'  , Full=0.2, Arr=0.8, Park=0.2, Dep=0.2,  show=0, save=1)
-        gant_chart_bays(input_dataframe, 'Bay Assignment Park' , Full=0.2, Arr=0.2, Park=0.8, Dep=0.2,  show=0, save=1)
-        gant_chart_bays(input_dataframe, 'Bay Assignment Dep'  , Full=0.2, Arr=0.2, Park=0.2, Dep=0.8,  show=0, save=1)
+        gant_chart_bays(input_dataframe, 'Bay Assignment Full' , Full=1.0, Arr=0.2, Park=0.2, Dep=0.2,  show=0, save=1, fb=1)
+        gant_chart_bays(input_dataframe, 'Bay Assignment Arr'  , Full=0.2, Arr=1.0, Park=0.2, Dep=0.2,  show=0, save=1, fb=1)
+        gant_chart_bays(input_dataframe, 'Bay Assignment Park' , Full=0.2, Arr=0.2, Park=1.0, Dep=0.2,  show=0, save=1, fb=1)
+        gant_chart_bays(input_dataframe, 'Bay Assignment Dep'  , Full=0.2, Arr=0.2, Park=0.2, Dep=1.0,  show=0, save=1, fb=1)
+        gant_chart_bays(input_dataframe, 'Bay Assignment All'  , Full=1.0, Arr=1.0, Park=1.0, Dep=1.0,  show=1, save=1, fb=1)
 
 
 
@@ -77,10 +77,11 @@ def assign_time_data2FN(input_dataframe, sort_category='', ascending=True):
     
     
 
-def gant_chart_ground(input_data, chart_title, show=0, save=1):
-
+def gant_chart_ground(input_data, chart_title, show=0, save=1, fb=1):
+    
     if show or save:
-        
+        if fb:
+            print ('  ---> Gant Chart: Ground Times ...')
         # Initial Values
         unique_flight_numbers = list(input_data['Fl No. Arrival'].unique())
 
@@ -153,8 +154,10 @@ def gant_chart_ground(input_data, chart_title, show=0, save=1):
 
 
 
-def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.8, show=0, save=1):
+def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.8, show=0, save=1, fb=1):
 
+    
+    
     rect_height = 0.65
 
     edge_full = '#000000'
@@ -169,6 +172,8 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
     text_int  = '#3C3C3C'
     
     if show or save:
+        if fb:
+            print ('  ---> Gant Chart: ' + chart_title + ' ...')
 
         # Plot Characteristics
         fig_size_unit_x, fig_size_unit_y = [18,(0.20 * len(all_bays))]
@@ -267,12 +272,13 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
                 max_atd = atd
 
         # Horizontal grid lines (Hightlighting exception bays such as non-servicable and single gate)
+        alpha_highlight_gridlines = min([Full, Arr, Park, Dep])
         for i in range(len(all_bays)):
             if i in [all_bays.index(x) for x in all_bays if x in ['J7', 'J8', 'J9']]:
-                ax.plot([midnight_today, max_atd],[i+1, i+1], c='r', ls='--', lw=0.5, alpha=0.9)
+                ax.plot([midnight_today, max_atd],[i+1, i+1], c='r', ls='--', lw=0.5, alpha=alpha_highlight_gridlines)
                 
             elif i in [all_bays.index(x) for x in all_bays if x in ['5', '6', '10', '11']]:
-                ax.plot([midnight_today, max_atd],[i+1, i+1], c='b', ls='--', lw=0.5, alpha=0.9)
+                ax.plot([midnight_today, max_atd],[i+1, i+1], c='b', ls='--', lw=0.5, alpha=alpha_highlight_gridlines)
                 
             else:
                 ax.plot([midnight_today, max_atd],[i+1, i+1], c='k', ls='--', lw=0.3, alpha=0.2)
@@ -320,14 +326,14 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
 
         ax.axvspan(midnight_today,
                    midnight_today + datetime.timedelta(hours=6) ,
-                   facecolor='#000000',
-                   alpha = 0.1        ,
+                   facecolor='#0A0A0A',
+                   alpha = 0.2        ,
                    zorder = 8         )
 
         ax.axvspan(midnight_tomorrow,
                    midnight_tomorrow + datetime.timedelta(hours=6) ,
-                   facecolor='#000000',
-                   alpha = 0.1        ,
+                   facecolor='#0A0A0A',
+                   alpha = 0.2        ,
                    zorder = 8         )
 
         
@@ -336,6 +342,8 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
         
         if show:
             plt.show()
+        else:
+            plt.close()
         
     
 

@@ -128,6 +128,7 @@ def generate_aircraft(use_existing, sample_size=10, every_n_minutes=5, show_resu
         # Generating data
         count = 0
         generated_input_data = []
+        used_flight_numbers = []
         for i in range(sample_size):
             
             # Random aircraft, time of arrival and duration of stay, Airline
@@ -151,8 +152,13 @@ def generate_aircraft(use_existing, sample_size=10, every_n_minutes=5, show_resu
 
             # Flight Number
             ref_number = np.random.randint(100, 999)
+            while ref_number in used_flight_numbers: #Checking for doubles
+                ref_number = np.random.randint(100, 999)
+                
             flight_number_in  = Airline + str(ref_number)
             flight_number_out = Airline + str(ref_number + np.random.choice([-1, 1], p=[0.5, 0.5]))
+            
+            used_flight_numbers.append(ref_number)
             
             # Computing time of departure
             AC_ATD  = AC_ATA + AC_STAY
