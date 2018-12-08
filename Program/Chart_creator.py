@@ -19,6 +19,7 @@ import Converters as CONV
 
 all_bays = list(DI.all_bays)[::-1]
 midnight_today = pd.to_datetime('today').replace(hour=0, minute=0, second=0, microsecond=0)
+midnight_tomorrow = midnight_today + datetime.timedelta(days=1)
 
 def generate_charts(input_dataframe, output_dataframe, towings_dataframe, solve_status):
 
@@ -265,10 +266,14 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
             if atd > max_atd:
                 max_atd = atd
 
-        # Horizontal grid lines
+        # Horizontal grid lines (Hightlighting exception bays such as non-servicable and single gate)
         for i in range(len(all_bays)):
             if i in [all_bays.index(x) for x in all_bays if x in ['J7', 'J8', 'J9']]:
                 ax.plot([midnight_today, max_atd],[i+1, i+1], c='r', ls='--', lw=0.5, alpha=0.9)
+                
+            elif i in [all_bays.index(x) for x in all_bays if x in ['5', '6', '10', '11']]:
+                ax.plot([midnight_today, max_atd],[i+1, i+1], c='b', ls='--', lw=0.5, alpha=0.9)
+                
             else:
                 ax.plot([midnight_today, max_atd],[i+1, i+1], c='k', ls='--', lw=0.3, alpha=0.2)
             
@@ -313,8 +318,19 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
         plt.grid(axis = 'x', alpha = 0.8, zorder = 0)   
         plt.subplots_adjust(left=0.075, bottom=0.075, right=0.99, top=0.94, wspace=0.1, hspace=0.4)
 
+        ax.axvspan(midnight_today,
+                   midnight_today + datetime.timedelta(hours=6) ,
+                   facecolor='#000000',
+                   alpha = 0.1        ,
+                   zorder = 8         )
 
+        ax.axvspan(midnight_tomorrow,
+                   midnight_tomorrow + datetime.timedelta(hours=6) ,
+                   facecolor='#000000',
+                   alpha = 0.1        ,
+                   zorder = 8         )
 
+        
         if save:
             plt.savefig('./outputs/'+ chart_title.replace(' ', '_') + '.pdf')
         

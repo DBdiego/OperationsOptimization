@@ -24,7 +24,7 @@ import Converters as CONV
 
 
 
-USE_PREGENERATED_DATA = 1 # Use existing file as input
+USE_PREGENERATED_DATA = 0 # Use existing file as input
 
 # [0] Generate Input Data
 input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=110, show_result=0)
@@ -71,7 +71,7 @@ Bay_Assignment, time_conflicts  , num_T = CONSTR.add_time_constraint(input_data,
 
 # --> Fuel Constraint
 num_F= 0
-#Bay_Assignment, fuel_constraints, num_F = CONSTR_P.add_fuelling_constraint(input_data, Bay_Assignment, flight_vars, fb=1)
+#Bay_Assignment, fuel_constraints, num_F = CONSTR.add_fuelling_constraint(input_data, Bay_Assignment, flight_vars, fb=1)
 Bay_Assignment, fuel_constraints, num_F = CONSTR.add_fuelling_constraint(input_data, Bay_Assignment, flight_vars, fb=1)
 
 # --> Adjacency Constraint
