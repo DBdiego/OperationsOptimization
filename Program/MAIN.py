@@ -27,7 +27,7 @@ import Converters as CONV
 USE_PREGENERATED_DATA = 0 # Use existing file as input
 
 # [0] Generate Input Data
-input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=10, show_result=0)
+input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=110, show_result=0)
 
 
 # [1] Objective function coefficients & Weights
@@ -92,6 +92,7 @@ print ('Checking for conflicting constraints: ...')
 crefiner = ConflictRefiner()
 conflicts = crefiner.refine_conflict(Bay_Assignment)
 print ('Checking for conflicting constraints: DONE ('+ str(len(conflicts))+' found)\n')
+
 
 # [5.2] Adding KPI's
 Bay_Assignment.add_kpi(Bay_Assignment.sum(coefficients[i]*flight_vars[i] for i in flight_var_indices if 'x' in i), 'Passenger Distance')

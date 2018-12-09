@@ -3,6 +3,7 @@
 import pandas as pd
 import numpy as np
 import time
+import datetime
 #import pulp
 
 # --> Home made files
@@ -64,7 +65,11 @@ def add_time_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
 
     if fb:
         print ('  ---> Adding Time Constraints ...')
+    
     number_constraints = 0
+
+    # Minimum minutes between flights at a same gate (movement of aircraft don't happen instantly
+    min_minutes = 15
     
     #Creation of matrix
     time_conflict_matrix = np.zeros((len(input_data), len(input_data)))
@@ -83,7 +88,10 @@ def add_time_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
             if (i < j):
                 
                 # if comparator arrival is within the stay of the subject flight
-                if (subject_arrival <= comparator_data['atd']) and (subject_departure >= comparator_data['ata']) and (subject_data['Fl No. Arrival'] != comparator_data['Fl No. Arrival']):
+                if (subject_arrival   <= comparator_data['atd'] + datetime.timedelta(minutes=min_minutes)) and \
+                   (subject_departure >= comparator_data['ata'] - datetime.timedelta(minutes=min_minutes)) and \
+                   (subject_data['Fl No. Arrival'] != comparator_data['Fl No. Arrival']):
+                    
                     
                     time_conflict_matrix[i,j] = 1
                     time_conflict_matrix[j,i] = 1 #Not sure how usefull this is...

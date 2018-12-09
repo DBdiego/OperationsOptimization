@@ -27,7 +27,7 @@ more info)
 '''
 
 
-def generate_aircraft(use_existing, sample_size=10, every_n_minutes=5, show_result=0):
+def generate_aircraft(use_existing, sample_size=10, resolution_ata=30, resolution_stay=5, show_result=0):
 
     # Inputs:
     #   use_existing    : Is a boolean telling the program to import an existing file or generating new data
@@ -63,14 +63,15 @@ def generate_aircraft(use_existing, sample_size=10, every_n_minutes=5, show_resu
 
         # Directory definitions
         base_directory = '../csv_data_appendices/input_distributions'
-
+        every_n_minutes_ATA  = resolution_ata
+        every_n_minutes_STAY = resolution_stay        
 
         # File Names
         file_AL_range_distr = base_directory + '/AL_domestic_international.csv'
         file_AC_type_distr  = base_directory + '/AC_type_distribution.csv'
         file_AL_code_distr  = base_directory + '/AL_code_distribution.csv'
-        file_ATA_distr      = base_directory + '/Arrival_sampling_'  + str(every_n_minutes) + '.csv'
-        file_STAY_distr     = base_directory + '/Duration_sampling_' + str(every_n_minutes) + '.csv'
+        file_ATA_distr      = base_directory + '/Arrival_sampling_'  + str(every_n_minutes_ATA ) + '.csv'
+        file_STAY_distr     = base_directory + '/Duration_sampling_' + str(every_n_minutes_STAY) + '.csv'
         
 
         # Reading Distributions    
@@ -104,10 +105,11 @@ def generate_aircraft(use_existing, sample_size=10, every_n_minutes=5, show_resu
         # Night Stay exeption in probability
         sigma      = 5400                  #[seconds] standard deviation is 1h30
         mu         = 5400                  #[seconds] in 1h30
-        resolution = every_n_minutes * 60  #[seconds]
-        
+        resolution = resolution_stay * 60  #[seconds]
+
+        # Number of intervals between 6AM and 12:00
         number_intervals = datetime.timedelta(hours   = 6               )/  \
-                           datetime.timedelta(minutes = every_n_minutes )
+                           datetime.timedelta(minutes = resolution_stay )
 
         time_deltas = []
         night_probs = []
@@ -119,7 +121,11 @@ def generate_aircraft(use_existing, sample_size=10, every_n_minutes=5, show_resu
             night_probs.append(night_prob)
             
         night_probs = list(np.array(night_probs)/np.sum(night_probs))
+        
+        time_deltas.append(datetime.timedelta(seconds=0))  # for interval randomisation later
+        night_probs.append(0)                              # for interval randomisation later
 
+        
 
         # Other variables
         move_types = ['Arr', 'Park', 'Dep']
@@ -132,10 +138,23 @@ def generate_aircraft(use_existing, sample_size=10, every_n_minutes=5, show_resu
         for i in range(sample_size):
             
             # Random aircraft, time of arrival and duration of stay, Airline
-            AC_type  = np.random.choice(AC_type_distr_prob [0], p = AC_type_distr_prob [1])
-            Airline  = np.random.choice(AL_code_distr_prob [0], p = AL_code_distr_prob [1])
-            AC_ATA   = np.random.choice(AC_ATA_distr_prob  [0], p = AC_ATA_distr_prob  [1])
-            AC_STAY  = np.random.choice(AC_STAY_distr_prob [0], p = AC_STAY_distr_prob [1])
+            AC_type = np.random.choice(AC_type_distr_prob [0], p = AC_type_distr_prob [1])
+            Airline = np.random.choice(AL_code_distr_prob [0], p = AL_code_distr_prob [1])
+            AC_ATA_inter  = np.random.choice(AC_ATA_distr_prob [0][:-1], p = AC_ATA_distr_prob [1][:-1])
+            AC_STAY_inter = np.random.choice(AC_STAY_distr_prob[0][:-1], p = AC_STAY_distr_prob[1][:-1])
+
+            # Random ATA within interval
+            ACA_ATA_int_index = AC_ATA_distr_prob[0].index(AC_ATA_inter)
+            AC_ATA_int_delta = AC_ATA_distr_prob[0][ACA_ATA_int_index+1] - AC_ATA_distr_prob[0][ACA_ATA_int_index]
+            AC_ATA = AC_ATA_inter + np.random.random() * AC_ATA_int_delta
+            #AC_ATA.replace(second=0, microsecond=0)
+
+            # Random STAY within interval
+            ACA_STAY_int_index = AC_STAY_distr_prob[0].index(AC_STAY_inter)
+            AC_STAY_int_delta = AC_STAY_distr_prob[0][ACA_STAY_int_index+1] - AC_STAY_distr_prob[0][ACA_STAY_int_index]
+            AC_STAY = AC_STAY_inter + np.random.random() * AC_STAY_int_delta
+            #AC_STAY = ((midnight_today + AC_STAY).replace(second=0, microsecond=0))-midnight_today
+            
 
             # Random 'domestic' or 'international' flight
             connection_probs = [AL_connection_distr[Airline]['dom_probs'],
@@ -168,12 +187,17 @@ def generate_aircraft(use_existing, sample_size=10, every_n_minutes=5, show_resu
             Night_stay = AC_ATA.date() < AC_ATD.date()
 
             # Adapting flight departure time if between midnight and 6AM
-            if Night_stay and (AC_ATD > tomorrow_midnight) and ( (AC_ATD - tomorrow_midnight) < datetime.timedelta(hours=5, minutes=59) ):
+            if Night_stay and (tomorrow_midnight < AC_ATD) and ( (AC_ATD - tomorrow_midnight) < datetime.timedelta(hours=5, minutes=59) ):
 
+                random_time_added_inter = np.random.choice(time_deltas[:-1] , p = night_probs[:-1])
+                random_time_added_int_ind = time_deltas.index(random_time_added_inter)
+                random_time_added_int_delta = time_deltas[random_time_added_int_ind+1]-time_deltas[random_time_added_int_ind]
+                random_time_added = time_deltas[random_time_added_int_ind] + np.random.random() * random_time_added_int_delta
+                
                 #Midnight + 6h + random extra time (normal distributed) #datetime.timedleta(days=1) 
                 AC_ATD = tomorrow_midnight            + \
                          datetime.timedelta(hours=6)  + \
-                         np.random.choice(time_deltas , p = night_probs)
+                         random_time_added  #np.random.choice(time_deltas , p = night_probs)
                 
                 AC_STAY = AC_ATD - AC_ATA
 

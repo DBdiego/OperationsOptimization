@@ -352,4 +352,87 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
 
 
 
+def time_bar_chart(data_x, data_y, chart_title,
+                   resolution=5,
+                   fill_color='#0000FF',
+                   edge_color='#000000',
+                   labelx_format='%Hh' ,
+                   xlabel = ''         ,
+                   ylabel = ''         ,
+                   show = 1            ,
+                   save = 0            ,
+                   add_start_x = 0     ,
+                   add_end_x   = 0     ): 
+
+    if show or save:
+        # Plotting    
+        half_bar_width = datetime.timedelta(minutes=resolution)/4
+        opacity   = 1
+
+        fill_color = fill_color
+        edge_color = edge_color 
+
+        myFmt = mdates.DateFormatter(labelx_format)
+
+        
+        fig = plt.figure(figsize=(12, 6))
+        ax  = fig.add_subplot(111)
+        
+        
+        # Prob bars
+        max_time = midnight_today
+        for i in range(len(data_x)):
+            
+            duration    = data_x.iloc[i] + midnight_today #duration_data['Time' ].iloc[i] + today_midnight
+            probability = data_y.iloc[i]                  #duration_data['Probs'].iloc[i]
+            
+            Rect = patches.Rectangle((duration - half_bar_width,0),
+                                     half_bar_width*2           ,
+                                     probability*100            ,   
+                                     linewidth = 0.8            ,
+                                     edgecolor = edge_color     ,
+                                     facecolor = fill_color     ,
+                                     alpha     = opacity        ,
+                                     zorder    = 10             )
+            
+            if probability > 0 and duration > max_time:
+                max_time = duration
+            
+            # Add the patch to the Axes
+            ax.add_patch(Rect)
+
+        #ax.xaxis_date()
+        ax.xaxis.set_major_locator(mdates.HourLocator())
+        ax.xaxis.set_major_formatter(myFmt)
+
+        ax.set_xlim([midnight_today + datetime.timedelta(seconds=add_start_x),
+                     max_time       + datetime.timedelta(seconds=add_end_x  )])
+        ax.set_ylim([0,max(list(data_y))*100*1.05])
+
+        # Setting title
+        ax.set_title(chart_title + ' (every ' + str(resolution) + ' min)', fontsize=20)
+
+        # Setting axis labels
+        ax.set_xlabel(xlabel, fontsize=15)
+        ax.set_ylabel(ylabel, fontsize=15)
+
+        #Remove useless part of the box
+        ax.spines[  'top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.tick_params(axis='both', labelsize=13)
+        ax.tick_params(axis='x', rotation=45)
+
+        #Others
+        plt.grid(alpha = 0.8, zorder = 0)   
+        plt.subplots_adjust(left=0.07, bottom=0.15, right=0.97, top=0.93, wspace=0.1, hspace=0.4)
+        
+        
+        if save:
+            plt.savefig('./outputs/'+ chart_title.replace(' ', '_') + '.pdf')
+
+        if show:
+            plt.show()
+        else:
+            plt.close()
+
             
