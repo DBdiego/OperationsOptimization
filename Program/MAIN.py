@@ -28,18 +28,18 @@ USE_PREGENERATED_DATA = 0 # Use existing file as input
 Buffer_time = 15          #[minutes]
 
 # [0] Generate Input Data
-input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=110, show_result=0)
+input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=25, show_result=0)
+
 
 
 # [1] Objective function coefficients & Weights
-coefficients = CoC.coefficient_calculator(input_data, fb=1)
+coefficients, kpi_coeffs = CoC.coefficient_calculator(input_data, fb=1)
 flight_var_indices = [x for x in coefficients]
 
 
 # [2] Definition of initial problem
 #Bay_Assignment = pulp.LpProblem('Bay Assignment', pulp.LpMaximize) #pulp.LpMinimize)
-Bay_Assignment = Model('Bay Assignment 2')
-
+Bay_Assignment = Model('Bay Assignment')
 
 
 
@@ -49,11 +49,11 @@ flight_vars = Bay_Assignment.binary_var_dict(keys=flight_var_indices, name='DV')
 
 
 
-
 # [4] Objective Function
 #Bay_Assignment += pulp.lpSum([coefficients[i]*flight_vars[i] for i in flight_var_indices]), 'Object to maximize'
 Objective_function = Bay_Assignment.sum(coefficients[i]*flight_vars[i] for i in flight_var_indices)
 Bay_Assignment.maximize(Objective_function)
+
 
 
 # [5] Constraints
@@ -95,9 +95,11 @@ conflicts = crefiner.refine_conflict(Bay_Assignment)
 print ('Checking for conflicting constraints: DONE ('+ str(len(conflicts))+' found)\n')
 
 
-# [5.2] Adding KPI's
-Bay_Assignment.add_kpi(Bay_Assignment.sum(coefficients[i]*flight_vars[i] for i in flight_var_indices if 'x' in i), 'Passenger Distance')
-#Bay_Assignment.report()
+# [5.2] Adding Sub-Objectives as KPI's
+Bay_Assignment.add_kpi(Bay_Assignment.sum(kpi_coeffs[0][i]*flight_vars[i] for i in flight_var_indices if 'x' in i), 'Passenger Distance')
+Bay_Assignment.add_kpi(Bay_Assignment.sum(kpi_coeffs[1][i]*flight_vars[i] for i in flight_var_indices if 'x' in i), 'Preferences'       )
+Bay_Assignment.add_kpi(Bay_Assignment.sum(kpi_coeffs[2][i]*flight_vars[i] for i in flight_var_indices if ('v' in i or 'w' in i)), 'Towings' )
+
 
 # [6] Writing .lp file
 print('Writing to .lp file: ...')
@@ -123,6 +125,8 @@ print('Solving the problem: DONE ('+str(round(time.time() - start_solve, 3))+' s
 
 
 solve_status = Bay_Assignment.solve_details.status
+relative_gap = ''.join([x for x in  [' (tolerance= '+ str(round(Bay_Assignment.solve_details.mip_relative_gap*100, 6)) + '%)'] if solve_status.find('tolerance') != -1])
+num_iter = Bay_Assignment.solve_details.nb_iterations
 if extra_info:
     print (Bay_Assignment.solve_details)
 
@@ -141,8 +145,12 @@ print ('  |--> Fuelling       : ' + str(num_F ))
 print ('  |--> Adjacency      : ' + str(num_A ))
 print ('  |--> Night Stay     : ' + str(num_NS))
 print ('  |--> Bay Compliance : ' + str(num_BC))
-print ('Solution is ' + str(solve_status))
+print ('Solution is ' + str(solve_status) + relative_gap)
+print ('Solution found in ' + str(num_iter) + ' iterations.')
 print ('Z = '         + str(Bay_Assignment.objective_value))
+print ('|--> Passenger Distance : ' + str(Bay_Assignment.kpis_as_dict()['Passenger Distance']))
+print ('|--> Preferences        : ' + str(Bay_Assignment.kpis_as_dict()['Preferences'       ]))
+print ('|--> Towings            : ' + str(Bay_Assignment.kpis_as_dict()['Towings'           ]))
 print ('========================== \n\n')
 
 

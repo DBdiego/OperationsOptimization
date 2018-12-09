@@ -20,6 +20,9 @@ def coefficient_calculator(input_data, fb = 1):
 
     # Creating Variables
     coefficients = {}
+    pass_kpi_coeffs = {}
+    pref_kpi_coeffs = {}
+    tows_kpi_coeffs = {}
 
     all_bays = DI.all_bays
     
@@ -79,21 +82,30 @@ def coefficient_calculator(input_data, fb = 1):
             max_distance_bay = max( list(bay_distances.loc[bay_distances['Bay'].isin([bay])].iloc[0, 1:]) )
             alpha = 1
             beta  = 2 * aircraft_capacity * max_distance_bay
-            gamma = 3 * aircraft_capacity * max_distance_bay#beta     #max_distance_bay
+            gamma = 3 * aircraft_capacity * max_distance_bay #beta     #max_distance_bay
 
 
             # Compute coefficient of first objective function
-
+            
             if flight_data['move type'] in ['Arr', 'Park']:
-                coefficient = 0  #(aircraft_capacity * distance)*(-1) * alpha
+                pass_coeff = 0  #(aircraft_capacity * distance)*(-1) * alpha
             else:
-                coefficient = (aircraft_capacity * distance)*(-1) * alpha
+                pass_coeff = (aircraft_capacity * distance)*(-1) * alpha
+
 
             # Coefficient of second objective function
             if bay in preference_bays:
-                coefficient += beta
+                pref_coeff = beta
             else:
-                coefficient += 0
+                pref_coeff = 0
+
+            if pref_coeff + pass_coeff == 0:
+                coefficient = 1
+            else:
+                coefficient = 0
+                
+            coefficient += pass_coeff
+            coefficient += pref_coeff
 
 
 
@@ -103,13 +115,17 @@ def coefficient_calculator(input_data, fb = 1):
                 coefficients.update({'x_' + str(i  ) + '_' + bay : coefficient ,
                                      'v_' + str(i  ) + '_' + bay : -gamma      ,
                                      'w_' + str(i+1) + '_' + bay : -gamma      })
-
-
+                
+                tows_kpi_coeffs.update({'v_' + str(i  ) + '_' + bay : gamma  ,
+                                        'w_' + str(i+1) + '_' + bay : gamma  })
+                
             elif flight_data['move type'] == 'Park':
-                #print('v_' + str(i) + '_' + bay)
                 coefficients.update({'x_' + str(i  ) + '_' + bay : coefficient ,
                                      'v_' + str(i  ) + '_' + bay : -gamma      ,
                                      'w_' + str(i+1) + '_' + bay : -gamma      })
+                
+                tows_kpi_coeffs.update({'v_' + str(i  ) + '_' + bay : gamma  ,
+                                        'w_' + str(i+1) + '_' + bay : gamma  })
 
 
             elif flight_data['move type'] == 'Dep':
@@ -118,13 +134,23 @@ def coefficient_calculator(input_data, fb = 1):
             else:
                 coefficients.update({'x_' + str(i) + '_' + bay : coefficient })
 
+
+            # KPI's
+            pass_kpi_coeffs.update({'x_' + str(i) + '_' + bay : -pass_coeff })
+            pref_kpi_coeffs.update({'x_' + str(i) + '_' + bay :  pref_coeff })
+            
+
             gobal_index += 1
+
+
+
+
 
 
     if fb:
         print ('Generating Coefficients & Weights: DONE (' + str(round(time.time()-start_time, 3)) +' seconds)\n')
     
-    return coefficients
+    return coefficients, [pass_kpi_coeffs, pref_kpi_coeffs, tows_kpi_coeffs]
 
 
 
