@@ -61,15 +61,13 @@ def add_bay_compliance(input_data, Bay_Assignment, flight_vars, fb=0):
 
 
 # [2] TIME Constraint
-def add_time_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
+def add_time_constraint(input_data, Bay_Assignment, flight_vars, Buffer_time, fb=0):
 
     if fb:
         print ('  ---> Adding Time Constraints ...')
     
     number_constraints = 0
 
-    # Minimum minutes between flights at a same gate (movement of aircraft don't happen instantly
-    min_minutes = 15
     
     #Creation of matrix
     time_conflict_matrix = np.zeros((len(input_data), len(input_data)))
@@ -88,8 +86,8 @@ def add_time_constraint(input_data, Bay_Assignment, flight_vars, fb=0):
             if (i < j):
                 
                 # if comparator arrival is within the stay of the subject flight
-                if (subject_arrival   <= comparator_data['atd'] + datetime.timedelta(minutes=min_minutes)) and \
-                   (subject_departure >= comparator_data['ata'] - datetime.timedelta(minutes=min_minutes)) and \
+                if (subject_arrival   <= comparator_data['atd'] + datetime.timedelta(minutes=Buffer_time)) and \
+                   (subject_departure >= comparator_data['ata'] - datetime.timedelta(minutes=Buffer_time)) and \
                    (subject_data['Fl No. Arrival'] != comparator_data['Fl No. Arrival']):
                     
                     

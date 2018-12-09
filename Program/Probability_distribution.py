@@ -118,7 +118,7 @@ if 1:
                                 airline_dom_int[key]['int_count']  })
         list_dom_int.append(info)
 
-    #Calculating the Probabilities
+    # Calculating the Probabilities
     AL_DOM_INT = pd.DataFrame(list_dom_int)
     AL_DOM_INT['dom_probs'] = AL_DOM_INT['dom_count']/AL_DOM_INT['total']
     AL_DOM_INT['int_probs'] = AL_DOM_INT['int_count']/AL_DOM_INT['total']
@@ -235,17 +235,31 @@ if 1:
         Duration['Probs'] = Duration['Count']/sum(list(Duration['Count']))
         #Duration[['Time', 'Probs']].to_csv(base_directory + 'Duration_sampling_'+str(every_n_minutes)+'.csv', sep=',', index=False)
 
+        if 0:
+            ChC.time_bar_chart(Arrival_count['Time'], Arrival_count['Probs'],
+                               'Arrival Time Probability Distribution',
+                               resolution=every_n_minutes,
+                               fill_color='#4F81BD'    ,
+                               edge_color='#4F81BD'    ,
+                               xlabel='Arrival Time'   ,
+                               ylabel='Probability [%]',
+                               add_end_x   = 1800      ,
+                               show = 1,
+                               save = 0)
+        if 0:
+            ChC.time_bar_chart(Duration['Time'], Duration['Probs'],
+                               'Ground Time Probability Distribution',
+                               resolution = every_n_minutes,
+                               fill_color = '#4F81BD'    ,
+                               edge_color = '#4F81BD'    ,
+                               xlabel = 'Ground Time'    ,
+                               ylabel = 'Probability [%]',
+                               add_start_x = 3000        ,
+                               add_end_x   = 1800        ,
+                               show = 1,
+                               save = 0)
 
-        ChC.time_bar_chart(Arrival_count['Time'], Arrival_count['Probs'],
-                           'Arrival Time Probability Distribution',
-                           resolution=every_n_minutes,
-                           fill_color='#4F81BD'    ,
-                           edge_color='#4F81BD'    ,
-                           xlabel='Arrival Time'   ,
-                           ylabel='Probability [%]',
-                           add_end_x   = 1800      ,
-                           show = 1,
-                           save = 0)
+
 
 
             
