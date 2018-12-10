@@ -184,7 +184,9 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
         myFmt = mdates.DateFormatter('%Hh')
 
 
-        max_atd = midnight_today
+        max_atd = datetime.datetime(1900, 12, 1)
+        min_ata = midnight_today
+        
         previous_bay_index = midnight_today
         for flight_data in input_data.to_dict('records'):
             bay_index = all_bays.index(flight_data['Bay'])
@@ -271,18 +273,9 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
             if atd > max_atd:
                 max_atd = atd
 
-        # Horizontal grid lines (Hightlighting exception bays such as non-servicable and single gate)
-        alpha_highlight_gridlines = min([Full, Arr, Park, Dep])
-        for i in range(len(all_bays)):
-            if i in [all_bays.index(x) for x in all_bays if x in ['J7', 'J8', 'J9']]:
-                ax.plot([midnight_today, max_atd],[i+1, i+1], c='r', ls='--', lw=0.5, alpha=alpha_highlight_gridlines)
-                
-            elif i in [all_bays.index(x) for x in all_bays if x in ['5', '6', '10', '11']]:
-                ax.plot([midnight_today, max_atd],[i+1, i+1], c='b', ls='--', lw=0.5, alpha=alpha_highlight_gridlines)
-                
-            else:
-                ax.plot([midnight_today, max_atd],[i+1, i+1], c='k', ls='--', lw=0.3, alpha=0.2)
-            
+            if ata < min_ata:
+                min_ata = ata
+
 
         
         #Other plot characteristics          
@@ -297,7 +290,10 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
         ax.set_ylabel('Bays')
         ax.set_xlabel('Time')
 
-        ax.set_xlim([midnight_today, max_atd + datetime.timedelta(minutes=45)])
+        midnight_start = datetime.datetime(min_ata.year, min_ata.month, min_ata.day, hour=0, minute=0, second=0, microsecond=0)
+        midnight_end   = datetime.datetime(max_atd.year, max_atd.month, max_atd.day, hour=0, minute=0, second=0, microsecond=0)
+
+        ax.set_xlim([midnight_start, max_atd + datetime.timedelta(minutes=45)])
 
         #Legend
         full_stay_patch = patches.Patch(linewidth = 0.8, edgecolor = edge_full, facecolor = 'none' ,alpha = Full, label='Full stay'     )
@@ -314,7 +310,7 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
                            park_stay_patch,
                            dep_stay_patch ,
                            dom_stay_patch ,
-                           int_stay_patch ],loc='lower left')
+                           int_stay_patch ], loc='lower left')
 
         #Remove useless part of the box
         ax.spines[  'top'].set_visible(False)
@@ -324,18 +320,33 @@ def gant_chart_bays(input_data, chart_title, Full=0.8, Arr=0.8, Park=0.8, Dep=0.
         plt.grid(axis = 'x', alpha = 0.8, zorder = 0)   
         plt.subplots_adjust(left=0.075, bottom=0.075, right=0.99, top=0.94, wspace=0.1, hspace=0.4)
 
-        ax.axvspan(midnight_today,
-                   midnight_today + datetime.timedelta(hours=6) ,
+        ax.axvspan(midnight_start,
+                   midnight_start + datetime.timedelta(hours=6) ,
                    facecolor='#0A0A0A',
                    alpha = 0.2        ,
                    zorder = 8         )
 
-        ax.axvspan(midnight_tomorrow,
-                   midnight_tomorrow + datetime.timedelta(hours=6) ,
+        ax.axvspan(midnight_end,
+                   midnight_end + datetime.timedelta(hours=6) ,
                    facecolor='#0A0A0A',
                    alpha = 0.2        ,
                    zorder = 8         )
 
+
+
+        # Horizontal grid lines (Hightlighting exception bays such as non-servicable and single gate)
+        alpha_highlight_gridlines = min([Full, Arr, Park, Dep])
+        for i in range(len(all_bays)):
+            if i in [all_bays.index(x) for x in all_bays if x in ['J7', 'J8', 'J9']]:
+                ax.plot([midnight_start, max_atd],[i+1, i+1], c='r', ls='--', lw=0.5, alpha=alpha_highlight_gridlines)
+                
+            elif i in [all_bays.index(x) for x in all_bays if x in ['5', '6', '10', '11']]:
+                ax.plot([midnight_start, max_atd],[i+1, i+1], c='b', ls='--', lw=0.5, alpha=alpha_highlight_gridlines)
+                
+            else:
+                ax.plot([midnight_start, max_atd],[i+1, i+1], c='k', ls='--', lw=0.3, alpha=0.2)
+
+            
         
         if save:
             plt.savefig('./outputs/'+ chart_title.replace(' ', '_') + '.pdf')
