@@ -25,12 +25,14 @@ push  ```git push```
 ### IMPORTANT
 the code is written in ```python 3```
 required modules/dependencies:
-- pulp
+- CPLEX python api
 - pandas
 - numpy
 - matplotlib
 - csv
 - scipy
+- openpyxl
+- 
 
 in case you do not have these, install them with the following command
 
@@ -50,11 +52,13 @@ Mac OSX:
 |     └─── Input_generator.py
 |     └─── Coefficient_calculator.py
 |     └─── Constraint_generator.py
+|     └─── Data_exporter.py
+|             └─── Chart_creator.py
 └─── Probability_distribution.py
 └─── Bay_Assignment.lp
 ```
 
-When running Main.py, the linear programming problem is created as a string by the ```pulp``` module and written to ```Bay_Assignment.lp```. The pulp solver will then interpret this file and solve the problem.
+When running Main.py, the linear programming problem is created as a string by the ```doceplex``` module and written to ```Bay_Assignment.lp```. The CPLEX solver will then interpret this file and solve the problem.
 
 
 

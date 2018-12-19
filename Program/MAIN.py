@@ -3,8 +3,7 @@
 import pandas as pd
 import numpy as np
 import datetime
-import pulp
-#import cplex as cpx
+#import pulp
 
 
 import time
@@ -23,12 +22,35 @@ import Data_exporter as DE
 import Converters as CONV
 
 
+'''
+=============================== -- INFO -- ===============================
+The main file of this program runs the additional files in this directory
+asfunctions. It is adivsed to have a look at the README.md file for more
+information on the dependencies of this code.
 
-USE_PREGENERATED_DATA = 0 # Use existing file as input
-Buffer_time = 15          #[minutes]
+Inputs that the user can tweak are:
+  - USE_PREGENERATED_DATA :   Boolean   If true, the files in the
+                                        "input_data" folder are used as
+                                        input data of the model
+                                        
+  - Buffer Time           :   Integer   Number of minutes added in front
+                                        AND end of every flight (in minutes)
+
+  - sample_size           :   Integer   Number of flight numbers generated
+                                        as input for the model
+
+It ouputs an excel file containing the solution and multiple gant-charts.
+
+==========================================================================
+'''
+
+
+USE_PREGENERATED_DATA =  1 # Use existing file as input
+Buffer_time = 15           # [minutes]
+sample_size = 25           # number of simulated aircraft
 
 # [0] Generate Input Data
-input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=25, show_result=0)
+input_data = IG.generate_aircraft(USE_PREGENERATED_DATA, sample_size=sample_size, show_result=0)
 
 
 
@@ -148,15 +170,15 @@ print ('  |--> Bay Compliance : ' + str(num_BC))
 print ('Solution is ' + str(solve_status) + relative_gap)
 print ('Solution found in ' + str(num_iter) + ' iterations.')
 print ('Z = '         + str(Bay_Assignment.objective_value))
-print ('|--> Passenger Distance : ' + str(Bay_Assignment.kpis_as_dict()['Passenger Distance']))
-print ('|--> Preferences        : ' + str(Bay_Assignment.kpis_as_dict()['Preferences'       ]))
-print ('|--> Towings            : ' + str(Bay_Assignment.kpis_as_dict()['Towings'           ]))
+print ('|--> Passenger Distance : -' + str(Bay_Assignment.kpis_as_dict()['Passenger Distance']))
+print ('|--> Preferences        :  ' + str(Bay_Assignment.kpis_as_dict()['Preferences'       ]))
+print ('|--> Towings            : -' + str(Bay_Assignment.kpis_as_dict()['Towings'           ]))
 print ('========================== \n\n')
 
 
 
 # [9] Saving Overview of problem solution
-solve_status = solve_status.split(' ')[1].replace(',', '') #= Bay_Assignment.solve_details.status.split(' ')[1]
-output_dataframe = DE.save_data(input_data, Bay_Assignment, solve_status)
+solve_status = solve_status.split(' ')[1].replace(',', '')
+output_dataframe = DE.save_data(input_data, Bay_Assignment, kpi_coeffs, solve_status)
 
 

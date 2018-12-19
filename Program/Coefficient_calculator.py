@@ -82,7 +82,7 @@ def coefficient_calculator(input_data, fb = 1):
             max_distance_bay = max( list(bay_distances.loc[bay_distances['Bay'].isin([bay])].iloc[0, 1:]) )
             alpha = 1
             beta  = 2 * aircraft_capacity * max_distance_bay
-            gamma = 3 * aircraft_capacity * max_distance_bay #beta     #max_distance_bay
+            gamma = 3 * aircraft_capacity * max_distance_bay
 
 
             # Compute coefficient of first objective function
@@ -90,7 +90,7 @@ def coefficient_calculator(input_data, fb = 1):
             if flight_data['move type'] in ['Arr', 'Park']:
                 pass_coeff = 0  #(aircraft_capacity * distance)*(-1) * alpha
             else:
-                pass_coeff = (aircraft_capacity * distance)*(-1) * alpha
+                pass_coeff = (aircraft_capacity * distance)* (-1) * alpha
 
 
             # Coefficient of second objective function

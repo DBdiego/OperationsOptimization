@@ -16,7 +16,7 @@ import Converters as CONV
 
 
 
-def save_data(input_data, Bay_Assignment, solve_status):
+def save_data(input_data, Bay_Assignment, kpi_coeffs, solve_status):
     print ('Exporting data to Excel: ...')
     start_time_export = time.time()
 
@@ -29,20 +29,39 @@ def save_data(input_data, Bay_Assignment, solve_status):
 
     if solve_status.lower() == 'optimal':
         # Adding assigned bay to flights
-        bay_assignment = list(np.zeros(len(input_data)))
+        bay_assignment    = list(np.zeros(len(input_data)))
+        passenger_coeffs  = list(np.zeros(len(input_data)))
+        preference_coeffs = list(np.zeros(len(input_data)))
+        towing_coeffs     = list(np.zeros(len(input_data)))
         
         for decision_variable in Bay_Assignment.iter_binary_vars():
-            if int(decision_variable.solution_value)==1 and decision_variable.name.find('x') != -1:
+            
+            if int(decision_variable.solution_value) == 1:
                 
                 dv, var_type, flight_index, bay = decision_variable.name.split('_')
-                bay_assignment[int(flight_index)] = bay
+                
+                if var_type == 'x':
+                    passenger_coeffs[int(flight_index)]  = -kpi_coeffs[0]['_'.join([var_type, flight_index, bay])]
+                    preference_coeffs[int(flight_index)] =  kpi_coeffs[1]['_'.join([var_type, flight_index, bay])]
+                    
+                    bay_assignment[int(flight_index)]   = bay
 
+                if var_type == 'v':
+                    towing_coeffs[int(flight_index)]  = -kpi_coeffs[2]['_'.join([var_type, flight_index, bay])]
+                    
+
+            
+                
+        
             if (decision_variable.name.find('v') != -1 or  decision_variable.name.find('w')!= -1 or  decision_variable.name.find('u')!= -1) and int(decision_variable.solution_value):
                 #print(decision_variable.name, decision_variable.solution_value)
                 pass
 
 
         output_dataframe['Bay'] = bay_assignment
+        output_dataframe['Passenger Coefficients' ] = passenger_coeffs
+        output_dataframe['Preference Coefficients'] = preference_coeffs
+        output_dataframe['Towing Coefficients'    ] = towing_coeffs
 
         # Checking for towings:
         long_stays = output_dataframe[output_dataframe['long stay']]
